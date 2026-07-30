@@ -7,6 +7,8 @@ import { HiOutlineChevronLeft } from 'react-icons/hi';
 import Head from 'next/head';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
+import { FcGoogle } from "react-icons/fc";
+import { signIn } from "next-auth/react";
 
 const AuthPage = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -253,7 +255,7 @@ const AuthPage = () => {
                                     onClick={handleSubmit}
 
                                     disabled={loading}
-                                    className="w-full bg-[#0C3A73] font-syne text-white py-3 cursor-pointer rounded-lg font-medium hover:bg-[#0A2C5A] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 flex items-center justify-center"
+                                    className="w-full bg-[#0C3A73] text-white py-3 cursor-pointer rounded-lg font-medium hover:bg-[#0A2C5A] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 flex items-center justify-center"
                                 >
                                     {loading ? (
                                         <div className="flex items-center">
@@ -267,6 +269,36 @@ const AuthPage = () => {
                                         </div>
                                     )}
                                 </button>
+
+
+                                <div className="my-8">
+
+                                    <div className="relative my-6">
+                                        <div className="absolute -bottom-10 inset-0 flex items-center">
+                                            <div className="w-full border-t border-white/30"></div>
+                                        </div>
+
+                                        <div className="relative flex justify-center">
+                                            <span className="bg-transparent px-4 text-sm text-white">
+                                                Or continue with
+                                            </span>
+                                        </div>
+                                    </div>
+
+
+                                    <button
+                                        type="button"
+                                        onClick={() => signIn("google")}
+                                        className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/30 bg-white py-3 text-black transition hover:bg-gray-100"
+                                    >
+                                        <FcGoogle size={24} />
+                                        <span className="font-medium">
+                                            Continue with Google
+                                        </span>
+                                    </button>
+
+
+                                </div>
                             </div>
                         </form>
                         {/* Toggle */}
@@ -277,7 +309,7 @@ const AuthPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsLogin(!isLogin)}
-                                className="ml-2 text-white font-medium hover:underline cursor-pointer  underline hover:no-underline"
+                                className="ml-2 text-white font-medium hover:no-underline cursor-pointer underline"
                             >
                                 {isLogin ? 'Sign Up' : 'Sign In'}
                             </button>
@@ -311,7 +343,7 @@ const AuthPage = () => {
           </div> */}
                     </div>
 
-                    <p className="text-center text-sm text-white/80 mt-8">
+                    <p className="text-center text-sm text-white/80 mt-0">
                         By {isLogin ? 'signing in' : 'creating an account'}, you agree to our{' '}
                         <Link href="/terms-condition" className="text-white underline hover:no-underline">Terms of Service</Link> and{' '}
                         <Link href="/privacy-policy" className="text-white underline hover:no-underline">Privacy Policy</Link>

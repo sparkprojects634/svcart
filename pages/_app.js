@@ -1,16 +1,24 @@
 // pages/_app.js
+
 import { ApolloProvider } from "@apollo/client";
+import { SessionProvider } from "next-auth/react";
+
 import client from "../libs/apollo";
 import { StateContext } from "../context/StateContext";
+import { WishlistProvider } from "../context/WishListStateContext";
+
 import "../styles/globals.css";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
-import Loading from "../components/Loading.jsx";
-import { WishlistProvider } from "../context/WishListStateContext.js";
 
-function App({ Component, pageProps }) {
+import Loading from "../components/Loading";
+
+function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +26,6 @@ function App({ Component, pageProps }) {
     const handleStart = () => setLoading(true);
 
     const handleStop = () => {
-      // Wait for images + videos to finish loading
       const waitForAssets = () => {
         const images = Array.from(document.images);
         const videos = Array.from(document.querySelectorAll("video"));
@@ -35,7 +42,7 @@ function App({ Component, pageProps }) {
         const videoPromises = videos.map(
           (video) =>
             new Promise((resolve) => {
-              if (video.readyState >= 3) return resolve(); // HAVE_FUTURE_DATA
+              if (video.readyState >= 3) return resolve();
               video.oncanplaythrough = resolve;
               video.onerror = resolve;
             })
@@ -59,14 +66,16 @@ function App({ Component, pageProps }) {
   }, [router]);
 
   return (
-    <ApolloProvider client={client}>
-      <StateContext>
-        <WishlistProvider>
-          {loading ? <Loading /> : <Component {...pageProps} />}
-          <Toaster position="bottom-center" reverseOrder={false} />
-        </WishlistProvider>
-      </StateContext>
-    </ApolloProvider>
+    <SessionProvider session={session}>
+      <ApolloProvider client={client}>
+        <StateContext>
+          <WishlistProvider>
+            {loading ? <Loading /> : <Component {...pageProps} />}
+            <Toaster position="bottom-center" reverseOrder={false} />
+          </WishlistProvider>
+        </StateContext>
+      </ApolloProvider>
+    </SessionProvider>
   );
 }
 

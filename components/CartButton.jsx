@@ -14,7 +14,7 @@ const CartButton = () => {
   return (
     <span
       onClick={() => setShowCart(!showCart)}
-      className="relative cursor-pointer flex items-center gap-2 rounded-lg border border-[#0C3A73] bg-white px-6 py-3 font-syne text-[15px] font-medium text-[#0C3A73] transition-all duration-300 hover:bg-[#0C3A73] hover:text-white"
+      className="relative cursor-pointer flex items-center gap-2 rounded-lg border border-[#0C3A73] bg-white px-6 py-3 text-[15px] font-medium text-[#0C3A73] transition-all duration-300 hover:bg-[#0C3A73] hover:text-white"
     >
       <span>Cart</span>
 

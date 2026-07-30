@@ -3,7 +3,7 @@
 const BeforeFooter = () => {
   return (
     <section
-      className="relative overflow-hidden py-24 lg:py-36"
+      className="relative overflow-hidden py-36 lg:py-52"
       style={{
         backgroundImage:
           "url('https://dashboard.svcart.shop/wp-content/uploads/2026/07/before-footer.png')",
@@ -15,7 +15,7 @@ const BeforeFooter = () => {
       <div className="absolute inset-0 bg-black/45" />
 
       <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-6 text-center">
-        <h2 className="font-syne max-w-4xl text-2xl font-semibold leading-tight text-white md:text-5xl lg:text-5xl lg:leading-[1.15]">
+        <h2 className="max-w-4xl text-2xl font-semibold leading-tight text-white md:text-5xl lg:text-5xl lg:leading-[1.15]">
           Get Exclusive Deals and Early
           <br />
           Access to New Products.
@@ -35,7 +35,7 @@ const BeforeFooter = () => {
 
           <button
             type="submit"
-            className="h-[54px] rounded-lg bg-[#FFC107] px-12 font-syne text-lg font-semibold text-black transition hover:bg-[#e8af00]"
+            className="h-[54px] rounded-lg bg-[#FFC107] px-12 text-lg font-semibold text-black transition hover:bg-[#e8af00]"
           >
             Subscribe Now
           </button>
