@@ -1,299 +1,159 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Search, ChevronDown, Menu, X, User, ShoppingCart } from "lucide-react";
+import { useState } from "react";
 import CartButton from "./CartButton";
-import {
-  Heart,
-  Menu,
-  Search,
-  X,
-  LogOut,
-  Info,
-  UserCircle,
-  ChevronRight,
-} from "lucide-react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/router";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiFacebook, FiInstagram, FiLinkedin, FiYoutube } from "react-icons/fi";
-import SearchBar from "./common/SearchBar";
-import client from "../libs/apollo";
-import { GET_ALL } from "../utils/queries";
-import ShopDropdown from "./common/ShopDropdown";
-import { FaTiktok } from "react-icons/fa";
 
-export async function getStaticProps() {
-  const { data } = await client.query({
-    query: GET_ALL,
-  });
+const links = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products", dropdown: true },
+  { label: "About Us", href: "/about" },
+  { label: "Blog", href: "/blog" },
+  { label: "Contact", href: "/contact" },
+];
 
-  const products = data?.products?.nodes || [];
-
-  return {
-    props: {
-      products,
-    },
-    revalidate: 60,
-  };
-}
-
-export default function Navbar({ products = [] }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [userDropdown, setUserDropdown] = useState(false);
-  const [user, setUser] = useState(null);
-  const dropdownRef = useRef(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch("/api/me");
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        console.error("❌ fetchUser error:", err);
-      }
-    }
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setUserDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const links = [
-    { href: "/products", label: "All", img: "https://dashboard.svcart.shop/wp-content/uploads/woocommerce-placeholder.webp" },
-  ]
-
-  async function handleLogout() {
-    const isConfirmed = window.confirm("Are you sure you want to log out?");
-    if (!isConfirmed) return;
-
-    try {
-      const response = await fetch("/api/logout", { method: "POST" });
-
-      if (response.ok) {
-        setUser(null);
-        toast.success("Successfully logged out!");
-        router.push("/");
-      } else {
-        console.error("❌ Logout failed:", response.status);
-        toast.error("Logout failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("❌ Logout network error:", error);
-      toast.error("An error occurred. Please check your connection.");
-    }
-  }
+export default function Navbar() {
+  const [open, setOpen] = useState(false);
 
   return (
-    <header className="w-full fixed top-0 left-0 z-50 justify-center flex flex-col lg:flex-row">
-      <nav className="max-w-[1280px] w-full flex justify-between items-center px-3 lg:px-6 py-2">
-        {/* Hamburger */}
-        <button
-          className="text-2xl w-[40px] md:w-[200px] lg:w-[270px]"
-          onClick={() => setMenuOpen((prev) => !prev)}
-        >
-           <Image 
-            height={40}
-            width={30}
-            unoptimized
-            src='https://dashboard.svcart.shop/wp-content/uploads/2025/12/menu-1.png'
-           />
-        </button>
+    <>
+      <header className="fixed top-0 left-0 z-50 w-full px-4 py-5">
+        <div className="mx-auto max-w-[1320px] rounded-[22px] bg-white px-8 py-3 shadow-sm">
 
-        {/* Logo */}
-        <Link href="/">
-          <Image
-            src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
-            alt="Logo"
-            width={120}
-            height={60}
-            unoptimized
-            className="w-[90px] lg:w-[90px] h-auto"
-          />
-        </Link>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
 
-        {/* Right section */}
-        <div className="flex items-center gap-3">
-          {/* <div className="hidden lg:block relative w-full">
-            <input
-              type="text"
-              placeholder="Search"
-              className="text-sm py-2 border border-black w-full px-4 rounded-lg"
-            />
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          </div> */}
-          <div className="hidden lg:block relative w-full">
-            <SearchBar products={products || []} />
-          </div>
-          {user ? (
-            <div ref={dropdownRef} className="relative hidden lg:block">
-              <button
-                onClick={() => setUserDropdown((prev) => !prev)}
-                className="flex items-center"
-              >
-                <UserCircle size={24} className="text-white" />
-              </button>
-              {userDropdown && (
-                <div className="absolute right-0 mt-9 w-60 bg-white shadow-lg rounded-lg overflow-hidden py-2 px-2 z-50">
-                  <div className="border-b px-4 py-2">
-                    <h3 className="capitalize">{user.name}</h3>
-                    <p className="text-xs text-gray-600">{user.email}</p>
-                  </div>
-                  <div className="text-sm mt-2 space-y-2">
-                    <Link
-                      href="/my-account"
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <UserCircle size={18} className="mr-2" /> Edit profile
-                    </Link>
-                    <Link
-                      href="/support"
-                      className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md"
-                    >
-                      <Info size={18} className="mr-2" /> Support
-                    </Link>
-                    <Link href="/wishlist" className="flex items-center px-4 py-2 hover:bg-gray-100 rounded-md">
-                      <Heart size={18} className="mr-2" /> Wishlist
-                    </Link>
-                    <hr />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                    >
-                      <LogOut size={18} className="mr-2" /> Logout
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link href="/auth" className="hidden lg:block">
-              <UserCircle size={24} className='text-white'/>
-            </Link>
-          )}
-          <CartButton />
-        </div>
-      </nav>
-      {/* <div className="md:hidden relative w-full mb-2 px-3">
-        <input
-          type="text"
-          placeholder="Search"
-          className="text-sm py-2 border w-full px-4 pr-10 rounded-lg"
-        />
-        <Search className="absolute right-7 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-      </div> */}
+            {/* LEFT */}
 
-      <div className="md:hidden relative w-full mb-2 px-3">
-        <SearchBar products={products || []} />
-      </div>
+            <div className="hidden lg:flex items-center gap-8">
 
-      {/* Mobile Slide Menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <>
-            {/* Background overlay */}
-            <motion.div
-              className="fixed inset-0 bg-black/50 z-40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMenuOpen(false)}
-            />
-
-            {/* Slide menu */}
-            <motion.div
-              className="fixed top-0 left-0 h-[94vh] lg:h-full w-3/4 max-w-xs bg-white shadow-lg z-50 py-6 px-5 flex flex-col overflow-y-auto"
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              {/* User info */}
-              {user ? (
-                <div className="border-b pb-4 mb-4 flex items-start gap-2">
-                  <Image
-                    src={"https://secure.gravatar.com/avatar/23874fa782fb0b6e80485b702ff0fb976894c95b3825716aa8b6a90c86cf6547?s=96&d=mm&r=g"}
-                    alt="Profile"
-                    width={30}
-                    height={25}
-                    quality={100}
-                    unoptimized
-                    className="rounded-full border-2 border-gray-200"
-                  />
-                  <div>
-                    <h3 className="font-semibold capitalize">{user.name}</h3>
-                    <p className="text-xs text-gray-600">{user.email}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-b pb-4 mb-4">
-                  <Link href="/auth" onClick={() => setMenuOpen(false)}>
-                    <button className="text-sm bg-black text-white px-4 py-2 rounded-md">
-                      Login / Register
-                    </button>
-                  </Link>
-                </div>
-              )}
-
-              <div className="absolute right-4">
-                <button className='hover:bg-gray-100 rounded-full p-2' onClick={() => setMenuOpen(false)}>
-                  <X />
-                </button>
-              </div>
-
-              <ul className="flex flex-col gap-4 text-md">
-                <li className="hover:underline">
-                  <Link href="/" onClick={() => setMenuOpen(false)}>
-                    Home
-                  </Link>
-                </li>
-                <li className="hover:underline">
-                  <Link href="/about" onClick={() => setMenuOpen(false)}>
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <ShopDropdown links={links} setMenuOpen={setMenuOpen} />
-                </li>
-                <li className="hover:underline">
-                  <Link href="/contact" onClick={() => setMenuOpen(false)}>
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
-              <hr className="mt-4" />
-              <div>
-                <h5 className="text-md mt-4">Follow Us</h5>
-                <ul className="mt-4 flex gap-4 items-center justify-start">
-                  <li><Link href="https://www.instagram.com/houseofrmartin/" target='_blank'><FiInstagram size={22} /></Link></li>
-                  <li><Link href="https://www.tiktok.com/@houseofrmartin" target="_blank"><FaTiktok size={22} /></Link></li>
-                  <li><Link href="https://www.linkedin.com/company/house-of-r-martin" target="_blank"><FiLinkedin size={22} /></Link></li>
-                </ul>
-              </div>
-
-              {/* Logout inside menu */}
-              {user && (
-                <button
-                  onClick={handleLogout}
-                  className="mt-auto flex items-center gap-2 text-red-600 text-sm px-4 py-2 bg-red-50 hover:bg-red-30 rounded-md"
+              {links.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-[15px] text-[#0C3A73] flex items-center gap-1 hover:text-[#F6B500] transition"
                 >
-                  <LogOut size={18} /> Logout
-                </button>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </header>
+                  {item.label}
+
+                  {item.dropdown && (
+                    <ChevronDown size={16} strokeWidth={2.2} />
+                  )}
+                </Link>
+              ))}
+
+              <button className="flex items-center gap-1 text-[15px] text-[#0C3A73]">
+                Search
+                <Search size={15} />
+              </button>
+
+            </div>
+
+            {/* MOBILE MENU */}
+
+            <div className="flex lg:hidden">
+              <button onClick={() => setOpen(true)}>
+                <Menu size={28} />
+              </button>
+            </div>
+
+            {/* LOGO */}
+
+            <div className="flex justify-center">
+              <Link href="/">
+                <Image
+                  src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
+                  alt="logo"
+                  width={70}
+                  height={70}
+                  unoptimized
+                />
+              </Link>
+            </div>
+
+            {/* RIGHT */}
+
+            <div className="flex justify-end items-center gap-4">
+
+              <Link
+                href="/auth"
+                className="hidden md:flex items-center gap-2 rounded-lg bg-[#0C3A73] px-7 py-3 text-white text-[15px]"
+              >
+                Login
+                <User size={17} />
+              </Link>
+
+              <CartButton />
+
+            </div>
+
+          </div>
+
+        </div>
+      </header>
+
+      {/* MOBILE DRAWER */}
+
+      <div
+        className={`fixed inset-0 z-[60] transition ${open ? "visible" : "invisible"
+          }`}
+      >
+        <div
+          onClick={() => setOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition ${open ? "opacity-100" : "opacity-0"
+            }`}
+        />
+
+        <aside
+          className={`absolute left-0 top-0 h-full w-[280px] bg-white p-6 transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"
+            }`}
+        >
+          <div className="mb-10 flex justify-between">
+
+            <Image
+              src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
+              width={60}
+              height={60}
+              alt=""
+              unoptimized
+            />
+
+            <button onClick={() => setOpen(false)}>
+              <X />
+            </button>
+
+          </div>
+
+          <nav className="space-y-6">
+
+            {links.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="block text-[#0C3A73] text-lg"
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            <Link
+              href="/auth"
+              className="block text-[#0C3A73] text-lg"
+            >
+              Login
+            </Link>
+
+            <Link
+              href="/cart"
+              className="block text-[#0C3A73] text-lg"
+            >
+              Cart
+            </Link>
+
+          </nav>
+        </aside>
+      </div>
+    </>
   );
 }

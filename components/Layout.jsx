@@ -4,6 +4,7 @@ import Cart from "./Cart";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import FooterBar from "./common/FooterBar";
+import BeforeFooter from "./BeforeFooter";
 // import ChatwootWidget from "./ChatwootWidget";
 
 const Layout = ({ children }) => {
@@ -24,6 +25,7 @@ const Layout = ({ children }) => {
             {children}
             {/* <ChatwootWidget /> */}
           </main>
+        <BeforeFooter /> 
         <FooterBar />
         <Footer />
       </>

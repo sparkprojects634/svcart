@@ -16,7 +16,7 @@ const heroSlides = [
     description:
       "A lovable knitted companion designed for comfort and style. Perfect for gifting or keeping close.",
     cta: "Shop Now",
-    image: "https://dashboard.svcart.shop/wp-content/uploads/2025/12/hero-img-1.png",
+    image: "https://dashboard.svcart.shop/wp-content/uploads/2026/07/banner-1.png",
   },
   {
     id: 2,

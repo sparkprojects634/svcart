@@ -1,44 +1,48 @@
-import Link from "next/link"
+"use client";
 
 const BeforeFooter = () => {
   return (
-    <section className='w-full relative'>
-      <div className='absolute z-10 left-2 lg:left-10 top-1/2 transform -translate-y-1/2'>
-        <h2 className="text-3xl lg:text-4xl text-black mb-4 uppercase font-akkurat tracking-wide">Sign up for special offers</h2>
-        <p className="text-black mb-4">Enter your email here*</p>
-        <form className="flex flex-col gap-4 w-full">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="p-2 rounded-md border border-gray-300 focus:outline-none text-sm"
-            required
-            autoComplete='off'
-          />
-          <div className="flex items-center gap-2">
+    <section
+      className="relative overflow-hidden py-24 lg:py-36"
+      style={{
+        backgroundImage:
+          "url('https://dashboard.svcart.shop/wp-content/uploads/2026/07/before-footer.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/45" />
+
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-6 text-center">
+        <h2 className="font-syne max-w-4xl text-2xl font-semibold leading-tight text-white md:text-5xl lg:text-5xl lg:leading-[1.15]">
+          Get Exclusive Deals and Early
+          <br />
+          Access to New Products.
+        </h2>
+
+        <form
+          className="mt-12 flex w-full max-w-4xl flex-col gap-5 md:flex-row"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <div className="flex-1">
             <input
-              type="checkbox"
-              id="marketing"
-              className="w-4 h-4 accent-black cursor-pointer"
+              type="email"
+              placeholder="Enter your email address"
+              className="h-[54px] w-full rounded-lg border border-white/80 bg-transparent px-8 text-lg text-white placeholder:text-white/70 outline-none backdrop-blur-sm transition focus:border-[#FFC107]"
             />
-            <label htmlFor="marketing" className="text-black text-sm cursor-pointer">
-              I agree to receive marketing emails from <Link href="/" className="underline hover:no-underline">SV Cart.</Link>
-            </label>
           </div>
 
           <button
             type="submit"
-            className="w-[200px] text-center bg-black  text-white p-3 rounded-full uppercase hover:bg-gray-900"
+            className="h-[54px] rounded-lg bg-[#FFC107] px-12 font-syne text-lg font-semibold text-black transition hover:bg-[#e8af00]"
           >
-            Subscribe
+            Subscribe Now
           </button>
         </form>
       </div>
-      <div className="absolute w-full h-[350px] lg:h-[700px] bg-black opacity-20"></div>
-      <div className="w-full h-[350px] md:h-[500px] lg:h-[700px] bg-[url(https://dashboard.houseofrmartin.com/wp-content/uploads/2025/09/before-footer-email.png)] bg-no-repeat bg-cover md:bg-position-right lg:bg-position-center">
-      </div>
-
     </section>
-  )
-}
+  );
+};
 
-export default BeforeFooter
+export default BeforeFooter;

@@ -15,7 +15,7 @@ const Loading = () => {
       <div className="flex items-center justify-center min-h-screen w-full">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-7 w-7 lg:h-10 lg:w-10 border-b-2 border-black mr-2"></div>
-          <p className="text-sm lg:text-lg">Loading...</p>
+          <p className="text-sm lg:text-lg font-syne">Loading...</p>
         </div>
       </div>
       <FooterBar />

@@ -1,29 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: "Homkiges";
-  src: url("/fonts/Homkiges.ttf") format("truetype");
-}
 
 @font-face {
   font-family: "Outfit";
   src: url("/fonts/Outfit-VariableFont_wght") format("truetype");
 }
 
+:root {
+  --font-outfit: "Outfit", sans-serif;
+  --font-syne: "Syne", sans-serif;
+}
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: "Outfit", sans-serif;
+  font-family: var(--font-syne);
   scroll-behavior: smooth;
   background-color: #E8EFE4;
 }
 
-.font-homkiges {
-  font-family: "Homkiges", sans-serif;
+.font-outfit {
+  font-family: var(--font-outfit);
 }
 
 a {
