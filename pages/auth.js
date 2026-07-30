@@ -162,6 +162,31 @@ const AuthPage = () => {
                             </p>
                         </div>
 
+                        <div className="my-8">
+                            <button
+                                type="button"
+                                onClick={() => signIn("google")}
+                                className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/30 bg-white py-3 text-black transition hover:bg-gray-100"
+                            >
+                                <FcGoogle size={24} />
+                                <span className="font-medium">
+                                    Continue with Google
+                                </span>
+                            </button>
+
+                            <div className="relative my-6">
+                                <div className="relative flex justify-center">
+                                    <div className="flex items-center justify-center w-full">
+                                        <hr className="w-full border border-t border-white/30" />
+                                        <span className="bg-transparent px-4 text-sm text-white">
+                                            OR
+                                        </span>
+                                        <hr className="w-full border border-t border-white/30" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-6">
@@ -269,36 +294,6 @@ const AuthPage = () => {
                                         </div>
                                     )}
                                 </button>
-
-
-                                <div className="my-8">
-
-                                    <div className="relative my-6">
-                                        <div className="absolute -bottom-10 inset-0 flex items-center">
-                                            <div className="w-full border-t border-white/30"></div>
-                                        </div>
-
-                                        <div className="relative flex justify-center">
-                                            <span className="bg-transparent px-4 text-sm text-white">
-                                                Or continue with
-                                            </span>
-                                        </div>
-                                    </div>
-
-
-                                    <button
-                                        type="button"
-                                        onClick={() => signIn("google")}
-                                        className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/30 bg-white py-3 text-black transition hover:bg-gray-100"
-                                    >
-                                        <FcGoogle size={24} />
-                                        <span className="font-medium">
-                                            Continue with Google
-                                        </span>
-                                    </button>
-
-
-                                </div>
                             </div>
                         </form>
                         {/* Toggle */}
