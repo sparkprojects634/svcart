@@ -248,7 +248,7 @@ const MyAccount = () => {
 
     // Logout
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
+        await fetch("/api/login/logout", { method: "POST" });
         router.push('/')
         toast.success('Logging out')
     };
@@ -283,7 +283,7 @@ const MyAccount = () => {
                             You need to be logged in to view this page.
                         </p>
                         <Link
-                            href="/auth"
+                            href="/login"
                             className="inline-flex items-center px-6 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
                         >
                             Login to Continue
@@ -455,7 +455,7 @@ const MyAccount = () => {
                                                         disabled
                                                         className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50"
                                                     />
-                                                    <p className="text-xs text-gray-500 mt-1">To change your password, use the <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">Forgot Password</Link> option.</p>
+                                                    <p className="text-xs text-gray-500 mt-1">To change your password, use the <Link href="/login/forgot-password" className="text-blue-600 hover:underline">Forgot Password</Link> option.</p>
                                                 </div>
                                             </div>
 

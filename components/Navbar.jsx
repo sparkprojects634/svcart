@@ -20,7 +20,7 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 z-50 w-full px-4 py-5">
-        <div className="mx-auto max-w-[1320px] rounded-[22px] bg-white px-8 py-3 shadow-sm">
+        <div className="mx-auto max-w-[1440px] rounded-[22px] bg-white/70 px-8 py-2 shadow-sm backdrop-blur-lg">
 
           <div className="grid grid-cols-[1fr_auto_1fr] items-center">
 
@@ -76,7 +76,7 @@ export default function Navbar() {
             <div className="flex justify-end items-center gap-4">
 
               <Link
-                href="/auth"
+                href="/login"
                 className="hidden md:flex items-center gap-2 rounded-lg bg-[#0C3A73] px-7 py-3 text-white text-[15px]"
               >
                 Login
@@ -138,7 +138,7 @@ export default function Navbar() {
             ))}
 
             <Link
-              href="/auth"
+              href="/login"
               className="block text-[#0C3A73] text-lg"
             >
               Login

@@ -46,7 +46,7 @@ const AuthPage = () => {
             clearTimeout(timer);
             timer = setTimeout(() => {
                 document.cookie = 'session=; Max-Age=0; path=/'; // clear session
-                router.push('/auth') // redirect to login
+                router.push('/login') // redirect to login
             }, 60 * 60 * 1000); // 1 hour
         };
 
@@ -104,7 +104,7 @@ const AuthPage = () => {
         setLoading(true);
         setErrors({});
         try {
-            const res = await fetch('/api/auth', {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, isLogin }),

@@ -1,86 +1,142 @@
 import Link from "next/link";
 import Image from "next/image";
-import { FiFacebook, FiInstagram, FiLinkedin, FiYoutube } from "react-icons/fi";
-import { FaTiktok } from "react-icons/fa";
+import {
+  FiFacebook,
+  FiInstagram,
+  FiYoutube,
+} from "react-icons/fi";
 
-const links = [
-  {label: "About", href: "/about"},
-  {label: "FAQs", href: "/faqs"},
-  {label: "Shipping, Return and Refund", href: "/shipping-return-refund"},
-  {label: "Terms and Condition", href: "/terms-condition"},
-  {label: "Privacy Policy", href: "/privacy-policy"}
-];  
+const footerSections = [
+  {
+    title: "Products",
+    links: [
+      { label: "Office Essentials", href: "/products?category=Office+Essentials" },
+      { label: "Home Essentials", href: "/products?category=Home+Essentials" },
+      { label: "Pet Lovers", href: "/products?category=Pet+Lovers" },
+      { label: "Car Lovers", href: "/products?category=Car+Lovers" },
+      { label: "Key Chain", href: "/products?category=Key+Chain" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Blog", href: "/blog" },
+      { label: "Terms & Conditions", href: "/terms-condition" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "Customer Account", href: "/auth" },
+      { label: "Shipping Information", href: "/shipping-return-refund" },
+      { label: "Returns & Refund Policy", href: "/shipping-return-refund" },
+      { label: "FAQs", href: "/faqs" },
+    ],
+  },
+];
 
-const Footer = () => {
+const socialLinks = [
+  {
+    icon: <FiFacebook size={18} />,
+    href: "https://facebook.com",
+  },
+  {
+    icon: <FiInstagram size={18} />,
+    href: "https://instagram.com",
+  },
+  {
+    icon: <FiYoutube size={18} />,
+    href: "https://youtube.com",
+  },
+];
+
+export default function Footer() {
   return (
-    <footer className="bg-[#E8EFE4] flex flex-col items-center w-full">
-      <div className="flex justify-center ">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 py-20 px-6 md:px-16 lg:px-24 text-center justify-items-center md:text-left max-w-[1280px] w-full">     
-          <div className="flex justify-center md:justify-start">
+    <footer className="bg-white">
+      {/* Top */}
+      <div className="mx-auto max-w-[1440px] px-6 lg:px-12 py-20">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
+          {/* Logo */}
+          <div>
             <Link href="/">
               <Image
                 src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
-                alt="SVCART"
-                width={250}
-                height={50}
-                className="mb-4 mx-auto md:mx-0"
+                alt="SV Cart"
+                width={120}
+                height={120}
+                className="mb-6"
                 unoptimized
               />
             </Link>
-          </div>
 
-          <div className="">
-            <h5 className="text-lg font-geograph-md uppercase">Company</h5>
-            <ul className="mt-4 space-y-2 text-black/90">
-              {links.map((link, index) => (
-                <li key={index} className="hover:underline">
-                  <Link href={link?.href}>{link.label}</Link>
-                </li>
+            <p className="max-w-[260px] text-[#0C3A73] text-sm lg:text-lg leading-relaxed">
+              Your space is your canvas.
+              <br />
+              Let's start crafting,
+              organizing, and decorating!
+            </p>
+
+            <div className="mt-10 flex gap-6">
+              {socialLinks.map((item, index) => (
+                <Link
+                  key={index}
+                  href={item.href}
+                  target="_blank"
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0C3A73] text-white transition hover:bg-[#082b55]"
+                >
+                  {item.icon}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
 
-          <div className="">
-            <h5 className="text-lg font-geograph-md uppercase">Shop</h5>
-            <ul className="mt-4 space-y-2 text-black/90">
-              <li><Link href="/products?category=Bestseller">Best Seller</Link></li>
-              <li><Link href="/products">Sale</Link></li>
-            </ul>
-          </div>
-
-          <div className="">
-            <h5 className="text-lg font-geograph-md uppercase">Follow us</h5>
-            <ul className="mt-4 flex gap-4 items-center justify-center md:justify-start">
-              <li><Link href="https://www.instagram.com/houseofrmartin/" target='_blank'><FiInstagram size={22} /></Link></li>
-              <li><Link href="https://www.tiktok.com/@houseofrmartin" target="_blank"><FaTiktok size={22} /></Link></li>
-              <li><Link href="https://www.linkedin.com/company/house-of-r-martin" target="_blank"><FiLinkedin size={22} /></Link></li>
-            </ul>
-          </div>
+          {/* Footer Columns */}
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="mb-8 text-md lg:text-xl font-bold uppercase text-[#0C3A73]">
+                {section.title}
+              </h3>
+              <ul className="space-y-3">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm lg:text-lg text-[#0C3A73] transition hover:underline"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="max-w-[1280px] w-full py-5 px-6 md:px-16 border-t border-dashed border-gray-300 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-sm text-gray-600 text-center md:text-left">
-          &copy; {new Date().getFullYear()} SV Cart. All rights reserved.
-        </p>
-        <Link
-          href="https://sparkcloud.in"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex justify-center md:justify-end"
-        >
-          <Image
-            src="/footer/sparkcloud.png"
-            alt="sparkcloud"
-            width={170}
-            height={50}
-            className="mt-2 md:mt-0"
-            unoptimized
-          />
-        </Link>
+      {/* Bottom */}
+
+      <div className="bg-[#0C3A73]">
+        <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-5 px-6 py-6 text-white md:flex-row">
+          <p className="text-sm">
+            © {new Date().getFullYear()} SV CART | All Rights Reserved
+          </p>
+          <Link
+            href="https://sparkcloud.us"
+            target="_blank"
+          >
+            <Image
+              src="/footer/sparkcloud.png"
+              alt="SparkCloud"
+              width={180}
+              height={40}
+              unoptimized
+            />
+          </Link>
+        </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}

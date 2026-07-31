@@ -1,4 +1,4 @@
-// pages/api/auth.js
+// pages/api/login.js
 import mysql from 'mysql2/promise';
 import { serialize } from 'cookie';
 import jwt from 'jsonwebtoken';
@@ -141,7 +141,7 @@ export default async function handler(req, res) {
         return res.status(201).json({ success: true, message: 'Account created with role Customer' });
 
     } catch (err) {
-        console.error('❌ DB/Auth Error:', err);
+        console.error('❌ DB/login Error:', err);
         return res.status(500).json({ success: false, message: 'Server error', error: err.message });
     } finally {
         if (conn) await conn.end();

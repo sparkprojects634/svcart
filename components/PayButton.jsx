@@ -90,7 +90,7 @@ const PayButton = ({ cartItems, totalPrice, user }) => {
     } catch (err) {
       console.error("Payment error:", err.response?.data || err.message);
       toast.error("Please login before checkout");
-      router.push("/auth");
+      router.push("/login");
     } finally {
       setLoading(false);
     }

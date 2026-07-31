@@ -20,7 +20,7 @@ const ForgotPassword = () => {
                     className="relative hidden lg:flex items-center justify-center bg-cover bg-center"
                     style={{
                         backgroundImage:
-                            "url('https://dashboard.svcart.shop/wp-content/uploads/2026/07/auth-page-banner.png')",
+                            "url('https://dashboard.svcart.shop/wp-content/uploads/2026/07/login-page-banner.png')",
                     }}
                 >
                     {/* Overlay */}
