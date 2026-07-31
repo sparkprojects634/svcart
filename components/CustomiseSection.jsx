@@ -92,7 +92,7 @@ export default function CustomizeSection() {
 
                 {/* RIGHT */}
 
-                <div className="w-full lg:w-1/2">
+                <div className="w-full lg:w-1/2 bg-[url(https://dashboard.svcart.shop/wp-content/uploads/2026/07/laptop.png)] bg-cover bg-center no-bg-no-repeat">
 
                     <Swiper
                         modules={[Pagination, Autoplay]}
@@ -111,19 +111,8 @@ export default function CustomizeSection() {
 
                             <SwiperSlide key={item.id}>
 
-                                <div className="relative mx-auto aspect-[16/11] max-w-3xl">
-
+                                <div className="relative mx-auto aspect-[16/11] max-w-3xl ">
                                     {/* Laptop */}
-
-                                    <Image
-                                        src="https://dashboard.svcart.shop/wp-content/uploads/2026/07/laptop.png"
-                                        alt=""
-                                        fill
-                                        priority
-                                        className="object-contain"
-                                        unoptimized
-                                        quality={100}
-                                    />
 
                                     {/* Product */}
 
