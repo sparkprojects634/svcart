@@ -16,6 +16,7 @@ import { Heart } from "lucide-react";
 import { useRef } from "react";
 import { useInView } from "framer-motion";
 import BestsellerProducts from "../components/BestsellerProducts";
+import CustomizeSection from "../components/CustomiseSection";
 
 export async function getStaticProps() {
   const { data } = await client.query({
@@ -68,6 +69,9 @@ const Home = ({ products }) => {
         {/* <Hero /> */}
         <section className="h-[70vh] lg:h-[100vh] bg-[url(https://dashboard.svcart.shop/wp-content/uploads/2026/07/banner-1.png)] bg-cover bg-center bg-no-repeat w-full flex items-center justify-center">
         </section>
+
+        <CustomizeSection />
+        
       </Layout>
     </>
   );

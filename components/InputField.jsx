@@ -29,7 +29,7 @@ export const InputField = ({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className={`w-full pl-10 pr-12 py-3 border border-white/80 bg-transparent rounded-lg text-white placeholder:text-white/70 outline-none backdrop-blur-sm transition focus:border-[#FFC107] focus:outline-none focus:ring-2  ${error ? 'border-black bg-gray-100' : 'border-white/80 bg-transparent'
+            className={`w-full pl-10 pr-12 py-3 border border-black/80 bg-transparent rounded-lg text-black placeholder:text-black/70 outline-none backdrop-blur-sm transition focus:border-[#FFC107] focus:outline-none focus:ring-2  ${error ? 'border-black bg-gray-100' : 'border-black/80 bg-transparent'
                 }`}
             autoComplete="off"
         />
@@ -40,7 +40,7 @@ export const InputField = ({
                 type="button"
                 onClick={onTogglePassword}
                 className={`absolute right-3 ${error ? 'top-1/3' : 'top-1/2'
-                } transform -translate-y-1/2 text-white hover:text-[#FFC107] focus:outline-none`}
+                } transform -translate-y-1/2 text-black hover:text-[#FFC107] focus:outline-none`}
             >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
