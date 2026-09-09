@@ -164,6 +164,40 @@ const GET_ALL = gql`
   }
 `;
 
+const GET_SEARCH_PRODUCTS = gql`
+  query SearchProducts {
+    products(first: 10) {
+      nodes {
+        id
+        name
+        slug
+
+        featuredImage {
+          node {
+            sourceUrl
+          }
+        }
+
+        productCategories(first: 10) {
+          nodes {
+            id
+            name
+            slug
+          }
+        }
+
+        ... on SimpleProduct {
+          price(format: RAW)
+        }
+
+        ... on VariableProduct {
+          price(format: RAW)
+        }
+      }
+    }
+  }
+`;
+
 
 const GET_SLUG = gql`
   query GetProductSlugs {
@@ -339,4 +373,4 @@ const GET_postId = gql`
     }
 `;
 
-export { GET_ALL_PAGES, GET_PAGE_SLUGS, GET_PAGE_DETAILS, GET_ALL, GET_SLUG, GET_PRODUCT_DETAILS, GET_postId, GET_CURRENT_USER, LOGOUT };
+export { GET_ALL_PAGES, GET_PAGE_SLUGS, GET_PAGE_DETAILS, GET_ALL, GET_SLUG, GET_PRODUCT_DETAILS, GET_postId, GET_CURRENT_USER, LOGOUT, GET_SEARCH_PRODUCTS };

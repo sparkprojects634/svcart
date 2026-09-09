@@ -1,277 +1,1064 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, X, ArrowRight } from "lucide-react";
-import { useRouter } from "next/router"; // ← pages router
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+
+import {
+  Search,
+  X,
+  ArrowRight,
+} from "lucide-react";
+
+import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
-
-const DEFAULT_SUGGESTIONS = [
-  "Beds",
-  "Collar / Leash",
-  "Bottles",
-  "Bowl",
-  "Smart Toy",
-  "Plush Toy",
-];
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [suggestions, setSuggestions] = useState(DEFAULT_SUGGESTIONS);
+
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const inputRef = useRef(null);
-  const overlayRef = useRef(null);
+
   const router = useRouter();
-  const [isLoaded, setIsLoaded] = useState(false);
-
-
-  useEffect(() => {
-    const fetchProducts = async () => {
+  const fetchProducts = useCallback(
+    async (searchTerm = "") => {
       try {
-        const res = await fetch(
-          "https://dashboard.thepawfectstory.com/wp-json/wc/v3/products?per_page=100",
+        setLoading(true);
+        setError(null);
+
+        const params = new URLSearchParams({
+          per_page: "100",
+          page: "1",
+        });
+
+        if (searchTerm.trim()) {
+          params.set(
+            "search",
+            searchTerm.trim()
+          );
+        }
+
+        const response = await fetch(
+          `/api/products?${params.toString()}`
         );
-        const data = await res.json();
-        setProducts(data?.products || data || []);
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              "Failed to fetch products"
+          );
+        }
+
+        setProducts(
+          Array.isArray(data) ? data : []
+        );
       } catch (err) {
-        console.error("Search fetch error:", err);
+        console.error(
+          "Search products error:",
+          err
+        );
+
         setProducts([]);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    };
+    },
+    []
+  );
 
-    fetchProducts();
-  }, []);
 
-  // Filter products and suggestions as user types
+  /*
+   * =========================================================
+   * INITIAL PRODUCTS
+   * =========================================================
+   */
+
   useEffect(() => {
-    if (!Array.isArray(products)) return;
+    fetchProducts();
+  }, [fetchProducts]);
 
-    const q = query.trim().toLowerCase();
 
-    if (!q) {
-      setFilteredProducts([]);
-      setSuggestions(DEFAULT_SUGGESTIONS);
+  /*
+   * =========================================================
+   * SEARCH PRODUCTS
+   * =========================================================
+   */
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const search = query.trim();
+
+    if (!search) {
       return;
     }
 
-    const matched = products
-      .filter((p) => p?.name?.toLowerCase().includes(q))
-      .slice(0, 6);
-    setFilteredProducts(matched);
+    const timeout = setTimeout(() => {
+      fetchProducts(search);
+    }, 300);
 
-    const categorySuggestions = [
-      ...new Set(
-        products
-          .flatMap((p) => p?.productCategories?.nodes?.map((c) => c.name) || [])
-          .filter((name) => name?.toLowerCase().includes(q))
-      ),
-    ].slice(0, 4);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [
+    query,
+    isOpen,
+    fetchProducts,
+  ]);
 
-    const keywordSuggestions = DEFAULT_SUGGESTIONS.filter((s) =>
-      s.toLowerCase().includes(q)
+  const categories = useMemo(() => {
+    const categoryMap = new Map();
+
+    products.forEach((product) => {
+      const productCategories =
+        product?.categories || [];
+
+      productCategories.forEach(
+        (category) => {
+          if (!categoryMap.has(category.id)) {
+            categoryMap.set(
+              category.id,
+              category
+            );
+          }
+        }
+      );
+    });
+
+    return Array.from(
+      categoryMap.values()
     );
+  }, [products]);
 
-    const combined = [
-      ...new Set([...keywordSuggestions, ...categorySuggestions]),
-    ].slice(0, 6);
 
-    setSuggestions(combined.length ? combined : [query]);
-  }, [query, products]);
+  /*
+   * =========================================================
+   * PRODUCTS TO DISPLAY
+   * =========================================================
+   *
+   * WooCommerce already performs the search.
+   * We only limit the dropdown to 6 products.
+   * =========================================================
+   */
 
-  const openSearch = () => {
+  const filteredProducts = useMemo(() => {
+    return products.slice(0, 6);
+  }, [products]);
+
+
+  /*
+   * =========================================================
+   * OPEN
+   * =========================================================
+   */
+
+  const openSearch = useCallback(() => {
     setIsOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  };
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  }, []);
+
+
+  /*
+   * =========================================================
+   * CLOSE
+   * =========================================================
+   */
 
   const closeSearch = useCallback(() => {
     setIsOpen(false);
     setQuery("");
-    setFilteredProducts([]);
-    setSuggestions(DEFAULT_SUGGESTIONS);
+    setError(null);
   }, []);
 
+
+  /*
+   * =========================================================
+   * SUBMIT
+   * =========================================================
+   */
+
   const handleSubmit = useCallback(
-    (searchTerm) => {
-      const term = (searchTerm || query).trim();
-      if (!term) return;
-      router.push(`/search?q=${encodeURIComponent(term)}`);
+    (term) => {
+      const searchTerm =
+        (term || query).trim();
+
+      if (!searchTerm) return;
+
+      router.push(
+        `/search?q=${encodeURIComponent(
+          searchTerm
+        )}`
+      );
+
       closeSearch();
     },
-    [query, router, closeSearch]
+    [
+      query,
+      router,
+      closeSearch,
+    ]
   );
 
-  // Keyboard: Escape closes, Enter submits
+
+  /*
+   * =========================================================
+   * ESCAPE
+   * =========================================================
+   */
+
   useEffect(() => {
-    const handleKey = (e) => {
-      if (!isOpen) return;
-      if (e.key === "Escape") closeSearch();
-      if (e.key === "Enter") handleSubmit(query);
+    if (!isOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeSearch();
+      }
+
+      if (
+        event.key === "Enter" &&
+        query.trim()
+      ) {
+        handleSubmit(query);
+      }
     };
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [isOpen, query, handleSubmit, closeSearch]);
 
-  // Prevent body scroll when open
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  // Close on route change
-  useEffect(() => {
-    router.events?.on("routeChangeStart", closeSearch);
-    return () => router.events?.off("routeChangeStart", closeSearch);
-  }, [router, closeSearch]);
-
-  const highlightMatch = (text, q) => {
-    if (!q.trim()) return <span>{text}</span>;
-    const idx = text.toLowerCase().indexOf(q.toLowerCase());
-    if (idx === -1) return <span>{text}</span>;
-    return (
-      <span>
-        <span className="font-bold">{text.slice(0, idx)}</span>
-        <span className="font-normal text-gray-500">
-          {text.slice(idx, idx + q.length)}
-        </span>
-        <span className="font-bold">{text.slice(idx + q.length)}</span>
-      </span>
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
     );
-  };
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [
+    isOpen,
+    query,
+    handleSubmit,
+    closeSearch,
+  ]);
+
+
+  /*
+   * =========================================================
+   * ROUTE CHANGE
+   * =========================================================
+   */
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      closeSearch();
+    };
+
+    router.events.on(
+      "routeChangeStart",
+      handleRouteChange
+    );
+
+    return () => {
+      router.events.off(
+        "routeChangeStart",
+        handleRouteChange
+      );
+    };
+  }, [
+    router.events,
+    closeSearch,
+  ]);
+
+
+  /*
+   * =========================================================
+   * HIGHLIGHT
+   * =========================================================
+   */
+
+  const highlightMatch = useCallback(
+    (text) => {
+      if (!query.trim()) {
+        return text;
+      }
+
+      const search =
+        query.toLowerCase();
+
+      const index =
+        text
+          .toLowerCase()
+          .indexOf(search);
+
+      if (index === -1) {
+        return text;
+      }
+
+      return (
+        <>
+          {text.slice(0, index)}
+
+          <span className="font-bold">
+            {text.slice(
+              index,
+              index + query.length
+            )}
+          </span>
+
+          {text.slice(
+            index + query.length
+          )}
+        </>
+      );
+    },
+    [query]
+  );
+
+
+  /*
+   * =========================================================
+   * PRODUCT IMAGE
+   * =========================================================
+   */
+
+  const getProductImage = useCallback(
+    (product) => {
+      return (
+        product?.images?.[0]?.src ||
+        "https://dashboard.svcart.shop/wp-content/uploads/woocommerce-placeholder.webp"
+      );
+    },
+    []
+  );
+
+
+  /*
+   * =========================================================
+   * RENDER
+   * =========================================================
+   */
 
   return (
     <>
-      {/* Trigger Button */}
+      {/* =====================================================
+          NAVBAR BUTTON
+      ===================================================== */}
+
       <button
-        onClick={openSearch}
-        aria-label="Open search"
-        className="flex items-center justify-center rounded transition-colors"
+        type="button"
+        onClick={
+          isOpen
+            ? closeSearch
+            : openSearch
+        }
+        aria-label={
+          isOpen
+            ? "Close search"
+            : "Open search"
+        }
+        className="
+          flex
+          items-center
+          gap-1
+          text-[15px]
+          text-[#0C3A73]
+          transition-opacity
+          hover:opacity-70
+        "
       >
-        <Search size={24} className="text-white" />
+        {isOpen ? "Close" : "Search"}
+
+        {isOpen ? (
+          <X size={15} />
+        ) : (
+          <Search size={15} />
+        )}
       </button>
 
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[9] bg-black/20"
-          onClick={closeSearch}
-        />
-      )}
 
-      {/* Search Overlay */}
+      {/* =====================================================
+          SEARCH DROPDOWN
+      ===================================================== */}
+
       {isOpen && (
-        <div
-          ref={overlayRef}
-          className="fixed max-w-[1400px] h-full lg:h-1/2 top-0 lg:top-40 inset-x-0 z-[10] flex flex-col bg-white shadow-md rounded-none lg:rounded-lg mx-auto"
-        >
-          {/* Top bar */}
-          <div className="flex items-center border-b border-gray-200 px-6 py-4 gap-4">
-            <Search size={20} className="text-gray-400 flex-shrink-0" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products..."
-              className="flex-1 text-base outline-none placeholder:text-gray-400"
-            />
-            <button
-              onClick={closeSearch}
-              aria-label="Close search"
-              className="text-gray-400 hover:text-black transition-colors"
+        <>
+          {/* BACKDROP */}
+
+          <div
+            className="
+              fixed
+              inset-0
+              z-[40]
+              bg-black/10
+            "
+            onClick={closeSearch}
+          />
+
+
+          {/* SEARCH PANEL */}
+
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-full
+              z-[50]
+              mt-0
+              lg:mt-3
+              rounded-none
+              lg:rounded-2xl
+              border
+              border-gray-100
+              bg-white
+              shadow-[0_15px_40px_rgba(0,0,0,0.12)]
+            "
+          >
+
+            <div
+              className="
+                mx-auto
+                max-w-[1440px]
+                px-4
+                py-5
+                md:px-8
+              "
             >
-              <X size={22} />
-            </button>
-          </div>
 
-          {/* Body */}
+              {/* =================================================
+                  SEARCH INPUT
+              ================================================= */}
 
-          <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-            {/* Left: Suggestions */}
-            <div className="w-full md:w-[220px] border-b md:border-b-0 md:border-r border-gray-100 px-6 py-6 flex-shrink-0 overflow-y-auto">
-              <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-4">
-                Suggestions
-              </p>
-              <ul className="space-y-2 lg:space-y-3">
-                {suggestions.map((s, i) => (
-                  <li key={i}>
-                    <button
-                      onClick={() => handleSubmit(s)}
-                      className="text-sm text-left hover:text-[#4C4F2E] transition-colors w-full"
-                    >
-                      {highlightMatch(s, query)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-4
+                  rounded-lg
+                  bg-[#F5F5F5]
+                  px-5
+                  py-3
+                "
+              >
 
-            {/* Right: Products */}
-            <div className="flex-1 px-8 py-6 overflow-y-auto">
-              {query.trim() ? (
-                <>
-                  <p className="text-xs font-semibold tracking-widest text-gray-400 uppercase mb-4">
-                    Products
-                  </p>
+                <Search
+                  size={20}
+                  className="
+                    shrink-0
+                    text-[#0C3A73]
+                  "
+                />
 
-                  {filteredProducts.length > 0 ? (
-                    <div className="flex flex-col gap-5">
-                      {filteredProducts.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={item.slug ? `/products/${item.slug}` : "#"}
-                          onClick={closeSearch}
-                          // The pulse is applied here to the entire row
-                          className={`flex items-center gap-4 group border rounded-md p-2 hover:bg-gray-50 transition-colors ${!isLoaded ? 'animate-pulse bg-gray-100' : 'bg-transparent'
-                            }`}
-                        >
-                          <div className="w-14 h-14 rounded-md overflow-hidden flex-shrink-0 bg-gray-200">
-                            <Image
-                              src={item.images?.[0]?.src || "https://dashboard.thepawfectstory.com/wp-content/uploads/woocommerce-placeholder.webp"}
-                              alt={item.name}
-                              width={100}
-                              height={100}
-                              onLoad={() => setIsLoaded(true)}
-                              className={`w-full h-full object-cover border rounded-md group-hover:scale-105 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'
-                                }`}
-                            />
-                          </div>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(event) =>
+                    setQuery(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Search products..."
+                  className="
+                    w-full
+                    bg-transparent
+                    text-base
+                    text-[#0C3A73]
+                    outline-none
+                    placeholder:text-gray-400
+                  "
+                />
 
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium group-hover:text-[#4C4F2E] transition-colors">
-                              {item.name}
-                              {item.price && (
-                                <span className="text-xs text-gray-400 ml-2">₹ {item.price}</span>
-                              )}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
+
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQuery("")
+                    }
+                    aria-label="Clear search"
+                    className="
+                      shrink-0
+                      text-gray-400
+                      transition
+                      hover:text-black
+                    "
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSubmit(query)
+                  }
+                  disabled={!query.trim()}
+                  className="
+                    shrink-0
+                    rounded-lg
+                    bg-[#0C3A73]
+                    px-8
+                    py-2.5
+                    text-sm
+                    font-medium
+                    text-white
+                    transition
+                    hover:bg-[#082B55]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  Search
+                </button>
+
+              </div>
+
+
+              {/* =================================================
+                  CONTENT
+              ================================================= */}
+
+              <div
+                className="
+                  mt-8
+                  grid
+                  grid-cols-1
+                  gap-8
+                  md:grid-cols-[220px_1fr]
+                "
+              >
+
+                {/* =================================================
+                    CATEGORIES
+                ================================================= */}
+
+                <div>
+
+                  <h3
+                    className="
+                      mb-5
+                      text-xs
+                      font-bold
+                      uppercase
+                      tracking-[0.15em]
+                      text-gray-400
+                    "
+                  >
+                    Categories
+                  </h3>
+
+
+                  {loading ? (
+
+                    <div className="space-y-4">
+
+                      {[1, 2, 3, 4, 5].map(
+                        (item) => (
+                          <div
+                            key={item}
+                            className="
+                              h-5
+                              w-32
+                              animate-pulse
+                              rounded
+                              bg-gray-100
+                            "
+                          />
+                        )
+                      )}
+
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">No products found.</p>
-                  )}
-                </>
-              ) : (
-                <div className="flex items-center justify-center h-48 md:h-full text-gray-300 text-sm select-none">
-                  Start typing to search…
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Footer CTA */}
-          {query.trim() && (
-            <button
-              onClick={() => handleSubmit(query)}
-              className="flex items-center gap-2 px-6 py-4 border-t border-gray-100 text-sm text-gray-600 hover:text-[#4C4F2E] hover:bg-gray-50 transition-colors"
-            >
-              Search for &quot;{query}&quot;
-              <ArrowRight size={16} />
-            </button>
-          )}
-        </div>
+                  ) : categories.length > 0 ? (
+
+                    <ul className="space-y-4">
+
+                      {categories
+                        .slice(0, 8)
+                        .map(
+                          (category) => (
+
+                            <li
+                              key={
+                                category.id
+                              }
+                            >
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleSubmit(
+                                    category.name
+                                  )
+                                }
+                                className="
+                                  text-left
+                                  text-[15px]
+                                  text-[#0C3A73]
+                                  transition
+                                  hover:translate-x-1
+                                  hover:font-medium
+                                "
+                              >
+                                {highlightMatch(
+                                  category.name
+                                )}
+                              </button>
+
+                            </li>
+
+                          )
+                        )}
+
+                    </ul>
+
+                  ) : (
+
+                    <p
+                      className="
+                        text-sm
+                        text-gray-400
+                      "
+                    >
+                      No categories found.
+                    </p>
+
+                  )}
+
+                </div>
+
+
+                {/* =================================================
+                    PRODUCTS
+                ================================================= */}
+
+                <div>
+
+                  <div
+                    className="
+                      mb-5
+                      flex
+                      items-center
+                      justify-between
+                    "
+                  >
+
+                    <h3
+                      className="
+                        text-xs
+                        font-bold
+                        uppercase
+                        tracking-[0.15em]
+                        text-gray-400
+                      "
+                    >
+                      {query.trim()
+                        ? "Search Results"
+                        : "Products"}
+                    </h3>
+
+
+                    {query.trim() && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleSubmit(
+                            query
+                          )
+                        }
+                        className="
+                          flex
+                          items-center
+                          gap-1
+                          text-sm
+                          text-[#0C3A73]
+                          hover:underline
+                        "
+                      >
+                        View all
+
+                        <ArrowRight
+                          size={14}
+                        />
+                      </button>
+                    )}
+
+                  </div>
+
+
+                  {/* =================================================
+                      INITIAL STATE
+                  ================================================= */}
+
+                  {!query.trim() && (
+
+                    <div
+                      className="
+                        flex
+                        min-h-[160px]
+                        items-center
+                        justify-center
+                        text-center
+                        text-sm
+                        text-gray-400
+                      "
+                    >
+                      Start typing to search
+                      products...
+                    </div>
+
+                  )}
+
+
+                  {/* =================================================
+                      LOADING
+                  ================================================= */}
+
+                  {query.trim() &&
+                    loading && (
+
+                      <div
+                        className="
+                          grid
+                          grid-cols-1
+                          gap-4
+                          sm:grid-cols-2
+                          lg:grid-cols-3
+                        "
+                      >
+
+                        {[1, 2, 3].map(
+                          (item) => (
+
+                            <div
+                              key={item}
+                              className="
+                                flex
+                                gap-4
+                                rounded-lg
+                                border
+                                border-gray-100
+                                p-3
+                              "
+                            >
+
+                              <div
+                                className="
+                                  h-16
+                                  w-16
+                                  shrink-0
+                                  animate-pulse
+                                  rounded-md
+                                  bg-gray-100
+                                "
+                              />
+
+                              <div className="flex-1">
+
+                                <div
+                                  className="
+                                    mb-2
+                                    h-4
+                                    w-3/4
+                                    animate-pulse
+                                    rounded
+                                    bg-gray-100
+                                  "
+                                />
+
+                                <div
+                                  className="
+                                    h-3
+                                    w-1/3
+                                    animate-pulse
+                                    rounded
+                                    bg-gray-100
+                                  "
+                                />
+
+                              </div>
+
+                            </div>
+
+                          )
+                        )}
+
+                      </div>
+
+                    )}
+
+
+                  {/* =================================================
+                      ERROR
+                  ================================================= */}
+
+                  {error && (
+
+                    <div
+                      className="
+                        rounded-lg
+                        bg-red-50
+                        px-4
+                        py-5
+                        text-center
+                        text-sm
+                        text-red-500
+                      "
+                    >
+                      {error}
+                    </div>
+
+                  )}
+
+
+                  {/* =================================================
+                      PRODUCTS
+                  ================================================= */}
+
+                  {query.trim() &&
+                    !loading &&
+                    !error &&
+                    filteredProducts.length >
+                      0 && (
+
+                      <div
+                        className="
+                          grid
+                          grid-cols-1
+                          gap-4
+                          sm:grid-cols-2
+                          lg:grid-cols-3
+                        "
+                      >
+
+                        {filteredProducts.map(
+                          (product) => (
+
+                            <Link
+                              key={
+                                product.id
+                              }
+                              href={
+                                product.slug
+                                  ? `/products/${product.slug}`
+                                  : "#"
+                              }
+                              onClick={
+                                closeSearch
+                              }
+                              className="
+                                group
+                                flex
+                                items-center
+                                gap-4
+                                rounded-lg
+                                border
+                                border-gray-100
+                                p-3
+                                transition
+                                hover:border-[#0C3A73]
+                                hover:bg-gray-50
+                              "
+                            >
+
+                              {/* IMAGE */}
+
+                              <div
+                                className="
+                                  h-16
+                                  w-16
+                                  shrink-0
+                                  overflow-hidden
+                                  rounded-md
+                                  bg-gray-100
+                                "
+                              >
+
+                                <Image
+                                  src={getProductImage(
+                                    product
+                                  )}
+                                  alt={
+                                    product.name
+                                  }
+                                  width={100}
+                                  height={100}
+                                  unoptimized
+                                  className="
+                                    h-full
+                                    w-full
+                                    object-cover
+                                    transition
+                                    duration-300
+                                    group-hover:scale-105
+                                  "
+                                />
+
+                              </div>
+
+
+                              {/* DETAILS */}
+
+                              <div className="min-w-0">
+
+                                <p
+                                  className="
+                                    truncate
+                                    text-sm
+                                    font-medium
+                                    text-[#0C3A73]
+                                  "
+                                >
+                                  {
+                                    product.name
+                                  }
+                                </p>
+
+
+                                {product.categories
+                                  ?.length >
+                                  0 && (
+
+                                  <p
+                                    className="
+                                      mt-1
+                                      truncate
+                                      text-xs
+                                      text-gray-400
+                                    "
+                                  >
+                                    {product.categories
+                                      .map(
+                                        (
+                                          category
+                                        ) =>
+                                          category.name
+                                      )
+                                      .join(
+                                        ", "
+                                      )}
+                                  </p>
+
+                                )}
+
+
+                                {product.price && (
+
+                                  <p
+                                    className="
+                                      mt-1
+                                      text-xs
+                                      font-medium
+                                      text-[#0C3A73]
+                                    "
+                                  >
+                                    ₹{" "}
+                                    {
+                                      product.price
+                                    }
+                                  </p>
+
+                                )}
+
+                              </div>
+
+                            </Link>
+
+                          )
+                        )}
+
+                      </div>
+
+                    )}
+
+
+                  {/* =================================================
+                      NO RESULTS
+                  ================================================= */}
+
+                  {query.trim() &&
+                    !loading &&
+                    !error &&
+                    filteredProducts.length ===
+                      0 && (
+
+                      <div
+                        className="
+                          py-10
+                          text-center
+                        "
+                      >
+
+                        <p
+                          className="
+                            text-sm
+                            text-gray-400
+                          "
+                        >
+                          No products found for{" "}
+
+                          <span
+                            className="
+                              font-medium
+                              text-[#0C3A73]
+                            "
+                          >
+                            "{query}"
+                          </span>
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleSubmit(
+                              query
+                            )
+                          }
+                          className="
+                            mt-4
+                            inline-flex
+                            items-center
+                            gap-2
+                            text-sm
+                            font-medium
+                            text-[#0C3A73]
+                            hover:underline
+                          "
+                        >
+                          Search anyway
+
+                          <ArrowRight
+                            size={14}
+                          />
+
+                        </button>
+
+                      </div>
+
+                    )}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </>
       )}
     </>
   );

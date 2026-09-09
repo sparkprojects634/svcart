@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Search, ChevronDown, Menu, X, User, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import CartButton from "./CartButton";
+import SearchBar from "./common/SearchBar";
 
 const links = [
   { label: "Home", href: "/" },
@@ -19,8 +20,8 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 z-50 w-full px-4 py-5">
-        <div className="mx-auto max-w-[1440px] rounded-[22px] bg-white/70 px-8 py-2 shadow-sm backdrop-blur-lg">
+      <header className="fixed top-0 left-0 z-50 w-full px-0 py-0 lg:px-4 lg:py-5">
+        <div className="mx-auto max-w-[1440px] rounded-none lg:rounded-[22px] bg-white/70 px-8 py-2 shadow-sm backdrop-blur-lg">
 
           <div className="grid grid-cols-[1fr_auto_1fr] items-center">
 
@@ -42,10 +43,7 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              <button className="flex items-center gap-1 text-[15px] text-[#0C3A73]">
-                Search
-                <Search size={15} />
-              </button>
+              <SearchBar />
 
             </div>
 
@@ -88,6 +86,11 @@ export default function Navbar() {
             </div>
 
           </div>
+
+          <div className="flex md:hidden mt-1">
+              <SearchBar />
+          </div>
+
 
         </div>
       </header>
