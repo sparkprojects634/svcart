@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const {
       search = "",
-      per_page = "20",
+      per_page = "50",
       page = "1",
     } = req.query;
 

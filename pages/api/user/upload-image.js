@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       // ✅ Move file
       fs.renameSync(tempPath, newPath);
 
-      const fileUrl = `https://dashboard.houseofrmartin.com/wp-content/uploads/user-profile/${fileName}`;
+      const fileUrl = `https://dashboard.svcart.shop/wp-content/uploads/user-profile/${fileName}`;
 
       // ✅ Push to usermeta
       try {

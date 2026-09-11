@@ -34,7 +34,7 @@ const SearchBar = () => {
         setError(null);
 
         const params = new URLSearchParams({
-          per_page: "100",
+          per_page: "10",
           page: "1",
         });
 
@@ -76,23 +76,10 @@ const SearchBar = () => {
     []
   );
 
-
-  /*
-   * =========================================================
-   * INITIAL PRODUCTS
-   * =========================================================
-   */
-
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-
-  /*
-   * =========================================================
-   * SEARCH PRODUCTS
-   * =========================================================
-   */
 
   useEffect(() => {
     if (!isOpen) return;
@@ -141,26 +128,10 @@ const SearchBar = () => {
   }, [products]);
 
 
-  /*
-   * =========================================================
-   * PRODUCTS TO DISPLAY
-   * =========================================================
-   *
-   * WooCommerce already performs the search.
-   * We only limit the dropdown to 6 products.
-   * =========================================================
-   */
-
   const filteredProducts = useMemo(() => {
     return products.slice(0, 6);
   }, [products]);
 
-
-  /*
-   * =========================================================
-   * OPEN
-   * =========================================================
-   */
 
   const openSearch = useCallback(() => {
     setIsOpen(true);
@@ -171,24 +142,12 @@ const SearchBar = () => {
   }, []);
 
 
-  /*
-   * =========================================================
-   * CLOSE
-   * =========================================================
-   */
 
   const closeSearch = useCallback(() => {
     setIsOpen(false);
     setQuery("");
     setError(null);
   }, []);
-
-
-  /*
-   * =========================================================
-   * SUBMIT
-   * =========================================================
-   */
 
   const handleSubmit = useCallback(
     (term) => {
@@ -211,13 +170,6 @@ const SearchBar = () => {
       closeSearch,
     ]
   );
-
-
-  /*
-   * =========================================================
-   * ESCAPE
-   * =========================================================
-   */
 
   useEffect(() => {
     if (!isOpen) return;
@@ -254,12 +206,6 @@ const SearchBar = () => {
   ]);
 
 
-  /*
-   * =========================================================
-   * ROUTE CHANGE
-   * =========================================================
-   */
-
   useEffect(() => {
     const handleRouteChange = () => {
       closeSearch();
@@ -281,12 +227,6 @@ const SearchBar = () => {
     closeSearch,
   ]);
 
-
-  /*
-   * =========================================================
-   * HIGHLIGHT
-   * =========================================================
-   */
 
   const highlightMatch = useCallback(
     (text) => {
@@ -327,12 +267,6 @@ const SearchBar = () => {
   );
 
 
-  /*
-   * =========================================================
-   * PRODUCT IMAGE
-   * =========================================================
-   */
-
   const getProductImage = useCallback(
     (product) => {
       return (
@@ -343,18 +277,8 @@ const SearchBar = () => {
     []
   );
 
-
-  /*
-   * =========================================================
-   * RENDER
-   * =========================================================
-   */
-
   return (
     <>
-      {/* =====================================================
-          NAVBAR BUTTON
-      ===================================================== */}
 
       <button
         type="button"
@@ -388,26 +312,22 @@ const SearchBar = () => {
       </button>
 
 
-      {/* =====================================================
-          SEARCH DROPDOWN
-      ===================================================== */}
 
       {isOpen && (
         <>
           {/* BACKDROP */}
 
-          <div
+          {/* <div
             className="
               fixed
               inset-0
               z-[40]
+              rounded-[20px]
               bg-black/10
             "
             onClick={closeSearch}
-          />
+          /> */}
 
-
-          {/* SEARCH PANEL */}
 
           <div
             className="

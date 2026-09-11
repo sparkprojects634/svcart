@@ -54,11 +54,11 @@ const Home = ({ products }) => {
   }, [products]);
 
   const categoriesSection = [
-    { title: "Co-ord set", img: "https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/cord-set-scaled.jpg", link: "/products?category=Co-ord+Set" },
-    { title: "Shirts", img: "https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/shirt-scaled.jpg", link: "/products?category=Shirts" },
-    { title: "Jeans", img: "https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/pant-scaled.jpg", link: "/products?category=Jeans" },
-    { title: "Tshirts", img: "https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/t-shirt-scaled.jpg", link: "/products?category=T-shirts" },
-    { title: "Accessories", img: "https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/MEN_S-BELT-R-M-777-1BLACK.jpg", link: "/products?category=Belt" },
+    { title: "Co-ord set", img: "https://dashboard.svcart.shop/wp-content/uploads/2025/10/cord-set-scaled.jpg", link: "/products?category=Co-ord+Set" },
+    { title: "Shirts", img: "https://dashboard.svcart.shop/wp-content/uploads/2025/10/shirt-scaled.jpg", link: "/products?category=Shirts" },
+    { title: "Jeans", img: "https://dashboard.svcart.shop/wp-content/uploads/2025/10/pant-scaled.jpg", link: "/products?category=Jeans" },
+    { title: "Tshirts", img: "https://dashboard.svcart.shop/wp-content/uploads/2025/10/t-shirt-scaled.jpg", link: "/products?category=T-shirts" },
+    { title: "Accessories", img: "https://dashboard.svcart.shop/wp-content/uploads/2025/10/MEN_S-BELT-R-M-777-1BLACK.jpg", link: "/products?category=Belt" },
   ];
 
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -67,7 +67,7 @@ const Home = ({ products }) => {
     <>
       <Layout>
         {/* <Hero /> */}
-        <section className="h-[70vh] lg:h-[100vh] bg-[url(https://dashboard.svcart.shop/wp-content/uploads/2026/07/banner-1.png)] bg-cover bg-center bg-no-repeat w-full flex items-center justify-center">
+        <section className="mt-32 h-[80vh] bg-[url(https://dashboard.svcart.shop/wp-content/uploads/2026/07/banner-1.png)] bg-cover bg-center bg-no-repeat mx-auto max-w-7xl w-full flex items-center justify-center rounded-xl">
         </section>
 
         <CustomizeSection />

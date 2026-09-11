@@ -109,7 +109,7 @@ const PayButton = ({ cartItems, totalPrice, user }) => {
             onChange={() => setPaymentMethod("rakbank")}
           />
           <Image
-            src="https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/rak_bank-logo-share-en-e1759992174237.png"
+            src="https://dashboard.svcart.shop/wp-content/uploads/2025/10/rak_bank-logo-share-en-e1759992174237.png"
             alt="Rakbank"
             width={80}
             height={40}
@@ -126,7 +126,7 @@ const PayButton = ({ cartItems, totalPrice, user }) => {
             onChange={() => setPaymentMethod("ccavenue")}
           />
           <Image
-            src="https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/0002309_ccavenue-payment-module-e1759992127347.png"
+            src="https://dashboard.svcart.shop/wp-content/uploads/2025/10/0002309_ccavenue-payment-module-e1759992127347.png"
             alt="CC Avenue"
             width={90}
             height={40}
@@ -160,7 +160,7 @@ const PayButton = ({ cartItems, totalPrice, user }) => {
           <>
             Pay with{" "}
             <Image
-              src="https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/logo-rakbank.webp"
+              src="https://dashboard.svcart.shop/wp-content/uploads/2025/10/logo-rakbank.webp"
               alt="Rakbank"
               width={90}
               height={40}
@@ -171,7 +171,7 @@ const PayButton = ({ cartItems, totalPrice, user }) => {
           <>
             Pay with{" "}
             <Image
-              src="https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/ccavenue-logo.png"
+              src="https://dashboard.svcart.shop/wp-content/uploads/2025/10/ccavenue-logo.png"
               alt="CCAvenue"
               width={90}
               height={40}

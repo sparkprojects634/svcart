@@ -44,7 +44,7 @@ const Hero = () => {
   const activeSlide = heroSlides[activeIndex];
 
   return (
-    <section className="relative w-full min-h-screen bg-[#D7D7D7] overflow-hidden px-6 lg:px-20">
+    <section className="relative w-full max-w-350 min-h-screen bg-[#D7D7D7] overflow-hidden px-6 lg:px-20">
 
       {/* Background Heading */}
       <motion.h1

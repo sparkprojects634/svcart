@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   const { path = [] } = req.query;
   const method = req.method;
 
-  const target = `https://dashboard.houseofrmartin.com/api.php${path.length ? "?" + path.join("&") : ""}`;
+  const target = `https://dashboard.svcart.shop/api.php${path.length ? "?" + path.join("&") : ""}`;
 
   try {
     const response = await fetch(target, {

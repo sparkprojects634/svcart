@@ -503,14 +503,14 @@ const ProductInfo = ({ product, isMounted, onVariantChange }) => {
               <>
                 <div className="flex items-center">
                   <Image
-                    src={'https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/aramex-logo-english-e1760165607545.webp'}
+                    src={'https://dashboard.svcart.shop/wp-content/uploads/2025/10/aramex-logo-english-e1760165607545.webp'}
                     height={60}
                     width={150}
                     alt="Shipping Info express"
                     className="object-contain"
                   />
                   <Image
-                    src={'https://dashboard.houseofrmartin.com/wp-content/uploads/2025/10/eco-express-1.png'}
+                    src={'https://dashboard.svcart.shop/wp-content/uploads/2025/10/eco-express-1.png'}
                     height={60}
                     width={180}
                     alt="Shipping Info express"

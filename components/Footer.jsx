@@ -124,7 +124,7 @@ export default function Footer() {
             © {new Date().getFullYear()} SV CART | All Rights Reserved
           </p>
           <Link
-            href="https://sparkcloud.us"
+            href="https://sparkcloud.in"
             target="_blank"
           >
             <Image

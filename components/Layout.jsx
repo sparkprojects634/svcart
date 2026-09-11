@@ -21,11 +21,11 @@ const Layout = ({ children }) => {
       <Cart />
       <>
         <Navbar />
-          <main className={styles.main}>
-            {children}
-            {/* <ChatwootWidget /> */}
-          </main>
-        <BeforeFooter /> 
+        <main className={styles.main}>
+          {children}
+          {/* <ChatwootWidget /> */}
+        </main>
+        <BeforeFooter />
         <FooterBar />
         <Footer />
       </>
