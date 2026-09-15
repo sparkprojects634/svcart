@@ -6,6 +6,7 @@ import { Search, ChevronDown, Menu, X, User, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import CartButton from "./CartButton";
 import SearchBar from "./common/SearchBar";
+import LoginModal from "./LoginModal";
 
 const links = [
   { label: "All Products", href: "/products", dropdown: true },
@@ -16,13 +17,14 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   return (
     <>
       <header className="fixed top-0 left-0 z-50 w-full border-b">
         <div className="mx-auto w-full bg-white px-4 lg:px-8 py-0 pb-2 lg:pb-0 lg:py-2 shadow-sm">
 
-          <div className="grid grid-cols-[0.8fr_1.4fr_0.8fr] items-center">
+          <div className="grid grid-cols-[1fr_1fr_1fr] lg:grid-cols-[0.8fr_1.2fr_1.2fr_0.8fr] items-center">
 
             {/* LEFT */}
             <div className="-ml-3 lg:ml-0">
@@ -37,10 +39,8 @@ export default function Navbar() {
               </Link>
             </div>
 
-
-            <div className="hidden lg:flex items-center gap-8">
-
-              {/* {links.map((item) => (
+            <div className="hidden lg:flex items-center w-full gap-8">
+              {links.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -52,7 +52,11 @@ export default function Navbar() {
                     <ChevronDown size={16} strokeWidth={2.2} />
                   )}
                 </Link>
-              ))} */}
+              ))}
+            </div>
+
+
+            <div className="hidden lg:flex items-center gap-8">
 
               <SearchBar />
 
@@ -73,13 +77,13 @@ export default function Navbar() {
 
             <div className="flex justify-end items-center gap-4">
 
-              <Link
-                href="/login"
-                className="hidden md:flex items-center gap-2 rounded-lg bg-[#0C3A73] px-4 py-2  text-white text-[15px]"
+              <span
+                onClick={() => setLoginOpen(true)}
+                className="hidden cursor-pointer md:flex items-center gap-2 rounded-lg border bg-[#0C3A73] hover:bg-white border-[#0C3A73] hover:text-[#0C3A73] px-4 py-2  text-white text-[15px] transition-colors"
               >
                 <User size={17} />
                 Login
-              </Link>
+              </span>
 
               <CartButton />
 
@@ -157,6 +161,12 @@ export default function Navbar() {
           </nav>
         </aside>
       </div>
+
+
+      <LoginModal
+        isOpen={loginOpen}
+        onClose={() => setLoginOpen(false)}
+      />
     </>
   );
 }

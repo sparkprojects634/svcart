@@ -1,9 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   images: {
-    domains: ["dashboard.svcart.shop", "secure.gravatar.com"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dashboard.svcart.shop',
+      },
+      {
+        protocol: 'https',
+        hostname: 'secure.gravatar.com',
+      },
+    ],
   },
 };
 
