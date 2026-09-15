@@ -24,7 +24,7 @@
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
     "formidable": "^3.5.4",
-    "framer-motion": "^7.6.1",
+    "framer-motion": "^13.3.0",
     "graphql": "^16.6.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.544.0",
