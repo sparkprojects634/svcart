@@ -5,12 +5,7 @@ const About = () => {
     return (
         <Layout>
             <main className="text-[#0C3A73] w-full">
-                {/* =========================
-                    HERO
-                ========================== */}
                 <section className="w-full bg-gradient-to-b from-[#FDBB30] from-60% to-[#F6F6F6] to-60% pb-10 pt-5 md:pt-10">
-                    {/* NOTE: mt-32 assumes a fixed/absolute header overlaying the
-                        hero. If the header is in normal flow, drop it. */}
                     <div className="mx-auto mt-32 w-full max-w-[720px] px-4 text-center">
                         <h1 className="text-[26px] font-bold uppercase leading-tight md:text-[38px]">
                             About SV Cart
@@ -27,26 +22,20 @@ const About = () => {
                         </p>
                     </div>
 
-                    {/* Main Image */}
                     <Image
                         src="/about/about-us-svcart.png"
                         alt="SV Cart 3D printer"
                         width={900}
                         height={600}
-                        className="mx-auto mt-10 h-auto w-4/5 max-w-[560px]"
+                        className="mx-auto mt-10 h-auto w-4/5 max-w-[750px]"
                         unoptimized
                         priority
                     />
                 </section>
 
-                {/* =========================
-                    CONTENT
-                ========================== */}
                 <section className="mx-auto max-w-7xl px-4 pb-16 pt-12 md:px-8 md:pt-24">
-
-                    {/* ABOUT OWNER */}
-                    <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-2 md:gap-12">
-                        <div>
+                    <div className="grid grid-cols-1 items-center gap-6 md:gap-12">
+                        <div className="w-full flex flex-col items-center">
                             <h2 className="text-[22px] font-bold leading-tight md:text-[28px]">
                                 About the owner
                             </h2>
@@ -55,7 +44,7 @@ const About = () => {
                                 The passion behind the brand
                             </p>
 
-                            <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-gray-600 md:text-[16px]">
+                            <p className="mt-3 text-[15px] text-center leading-relaxed text-gray-600 md:text-[16px]">
                                 We believe in bringing innovative products and
                                 creative solutions to everyday life. Our passion
                                 for technology and design drives us to continuously
@@ -69,13 +58,12 @@ const About = () => {
                                 src="/about/about-owner.png"
                                 alt="The founder of SV Cart at work"
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                                 sizes="(max-width: 768px) 100vw, 500px"
                             />
                         </div>
                     </div>
 
-                    {/* WHY CHOOSE US */}
                     <div className="mt-12 grid grid-cols-1 items-center gap-6 md:mt-20 md:grid-cols-2 md:gap-12">
                         <div className="relative aspect-[1.35/1] overflow-hidden rounded-lg">
                             <Image

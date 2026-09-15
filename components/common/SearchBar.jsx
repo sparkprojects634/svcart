@@ -10,6 +10,7 @@ import {
   Search,
   X,
   ArrowRight,
+  XIcon,
 } from "lucide-react";
 
 import { useRouter } from "next/router";
@@ -54,7 +55,7 @@ const SearchBar = () => {
         if (!response.ok) {
           throw new Error(
             data?.message ||
-              "Failed to fetch products"
+            "Failed to fetch products"
           );
         }
 
@@ -280,36 +281,100 @@ const SearchBar = () => {
   return (
     <>
 
-      <button
-        type="button"
-        onClick={
-          isOpen
-            ? closeSearch
-            : openSearch
-        }
-        aria-label={
-          isOpen
-            ? "Close search"
-            : "Open search"
-        }
+      <div
         className="
+          w-full
           flex
           items-center
-          gap-1
-          text-[15px]
-          text-[#0C3A73]
-          transition-opacity
-          hover:opacity-70
+          gap-4
+          rounded-lg
+          bg-[#F5F5F5]
+          px-3
+          py-2
+          border
+          border-black/5
         "
+        onClick={openSearch}
+      aria-label={
+        isOpen
+          ? "Close search"
+          : "Open search"
+      }
       >
-        {isOpen ? "Close" : "Search"}
 
-        {isOpen ? (
-          <X size={15} />
-        ) : (
-          <Search size={15} />
+        <Search
+          size={20}
+          className="
+                    shrink-0
+                    text-[#0C3A73]
+                  "
+        />
+
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(event) =>
+            setQuery(
+              event.target.value
+            )
+          }
+          placeholder="Search products..."
+          className="
+                    w-full
+                    bg-transparent
+                    text-base
+                    text-[#0C3A73]
+                    outline-none
+                    placeholder:text-gray-400
+                  "
+        />
+
+
+        {query && (
+          <button
+            type="button"
+            onClick={() =>
+              setQuery("")
+            }
+            aria-label="Clear search"
+            className="
+                      shrink-0
+                      text-gray-400
+                      transition
+                      hover:text-black
+                    "
+          >
+            <X size={18} />
+          </button>
         )}
-      </button>
+
+
+        <button
+          type="button"
+          onClick={() =>
+            handleSubmit(query)
+          }
+          disabled={!query.trim()}
+          className="
+                    shrink-0
+                    rounded-lg
+                    bg-[#0C3A73]
+                    px-4
+                    py-2.5
+                    text-sm
+                    font-medium
+                    text-white
+                    transition
+                    hover:bg-[#082B55]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+        >
+          Search
+        </button>
+
+      </div>
 
 
 
@@ -335,9 +400,11 @@ const SearchBar = () => {
               left-0
               right-0
               top-full
+              mx-auto
+              max-w-[1440px]
               z-[50]
               mt-0
-              lg:mt-3
+              lg:mt-2
               rounded-none
               lg:rounded-2xl
               border
@@ -347,10 +414,13 @@ const SearchBar = () => {
             "
           >
 
+            <button onClick={closeSearch} className="absolute top-2 right-2 p-2 rounded-full">
+              <XIcon color="black" size={18} />
+            </button>
+
             <div
               className="
                 mx-auto
-                max-w-[1440px]
                 px-4
                 py-5
                 md:px-8
@@ -360,92 +430,6 @@ const SearchBar = () => {
               {/* =================================================
                   SEARCH INPUT
               ================================================= */}
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-4
-                  rounded-lg
-                  bg-[#F5F5F5]
-                  px-5
-                  py-3
-                "
-              >
-
-                <Search
-                  size={20}
-                  className="
-                    shrink-0
-                    text-[#0C3A73]
-                  "
-                />
-
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={query}
-                  onChange={(event) =>
-                    setQuery(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Search products..."
-                  className="
-                    w-full
-                    bg-transparent
-                    text-base
-                    text-[#0C3A73]
-                    outline-none
-                    placeholder:text-gray-400
-                  "
-                />
-
-
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setQuery("")
-                    }
-                    aria-label="Clear search"
-                    className="
-                      shrink-0
-                      text-gray-400
-                      transition
-                      hover:text-black
-                    "
-                  >
-                    <X size={18} />
-                  </button>
-                )}
-
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleSubmit(query)
-                  }
-                  disabled={!query.trim()}
-                  className="
-                    shrink-0
-                    rounded-lg
-                    bg-[#0C3A73]
-                    px-8
-                    py-2.5
-                    text-sm
-                    font-medium
-                    text-white
-                    transition
-                    hover:bg-[#082B55]
-                    disabled:cursor-not-allowed
-                    disabled:opacity-50
-                  "
-                >
-                  Search
-                </button>
-
-              </div>
 
 
               {/* =================================================
@@ -753,7 +737,7 @@ const SearchBar = () => {
                     !loading &&
                     !error &&
                     filteredProducts.length >
-                      0 && (
+                    0 && (
 
                       <div
                         className="
@@ -853,27 +837,27 @@ const SearchBar = () => {
                                   ?.length >
                                   0 && (
 
-                                  <p
-                                    className="
+                                    <p
+                                      className="
                                       mt-1
                                       truncate
                                       text-xs
                                       text-gray-400
                                     "
-                                  >
-                                    {product.categories
-                                      .map(
-                                        (
-                                          category
-                                        ) =>
-                                          category.name
-                                      )
-                                      .join(
-                                        ", "
-                                      )}
-                                  </p>
+                                    >
+                                      {product.categories
+                                        .map(
+                                          (
+                                            category
+                                          ) =>
+                                            category.name
+                                        )
+                                        .join(
+                                          ", "
+                                        )}
+                                    </p>
 
-                                )}
+                                  )}
 
 
                                 {product.price && (
@@ -914,7 +898,7 @@ const SearchBar = () => {
                     !loading &&
                     !error &&
                     filteredProducts.length ===
-                      0 && (
+                    0 && (
 
                       <div
                         className="

@@ -8,11 +8,10 @@ import CartButton from "./CartButton";
 import SearchBar from "./common/SearchBar";
 
 const links = [
-  { label: "Home", href: "/" },
-  { label: "Products", href: "/products", dropdown: true },
-  { label: "About Us", href: "/about" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
+  { label: "All Products", href: "/products", dropdown: true },
+  { label: "3D Models", href: "/products?category=3d+models" },
+  { label: "Key Chain", href: "/products?category=key+chain" },
+  { label: "Home Decor", href: "/products?category=home+decor" },
 ];
 
 export default function Navbar() {
@@ -20,16 +19,28 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 z-50 w-full px-0 py-0 lg:px-4 lg:py-5">
-        <div className="mx-auto max-w-[1440px] rounded-none lg:rounded-[22px] bg-white/70 px-8 py-2 shadow-sm backdrop-blur-lg">
+      <header className="fixed top-0 left-0 z-50 w-full border-b">
+        <div className="mx-auto w-full bg-white px-4 lg:px-8 py-0 pb-2 lg:pb-0 lg:py-2 shadow-sm">
 
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+          <div className="grid grid-cols-[0.8fr_1.4fr_0.8fr] items-center">
 
             {/* LEFT */}
+            <div className="-ml-3 lg:ml-0">
+              <Link href="/">
+                <Image
+                  src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
+                  alt="logo"
+                  width={80}
+                  height={80}
+                  unoptimized
+                />
+              </Link>
+            </div>
+
 
             <div className="hidden lg:flex items-center gap-8">
 
-              {links.map((item) => (
+              {/* {links.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -41,7 +52,7 @@ export default function Navbar() {
                     <ChevronDown size={16} strokeWidth={2.2} />
                   )}
                 </Link>
-              ))}
+              ))} */}
 
               <SearchBar />
 
@@ -50,24 +61,13 @@ export default function Navbar() {
             {/* MOBILE MENU */}
 
             <div className="flex lg:hidden">
-              <button onClick={() => setOpen(true)}>
+              {/* <button onClick={() => setOpen(true)}>
                 <Menu size={28} />
-              </button>
+              </button> */}
             </div>
 
             {/* LOGO */}
 
-            <div className="flex justify-center">
-              <Link href="/">
-                <Image
-                  src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/svcart-logo.png"
-                  alt="logo"
-                  width={70}
-                  height={70}
-                  unoptimized
-                />
-              </Link>
-            </div>
 
             {/* RIGHT */}
 
@@ -75,10 +75,10 @@ export default function Navbar() {
 
               <Link
                 href="/login"
-                className="hidden md:flex items-center gap-2 rounded-lg bg-[#0C3A73] px-7 py-3 text-white text-[15px]"
+                className="hidden md:flex items-center gap-2 rounded-lg bg-[#0C3A73] px-4 py-2  text-white text-[15px]"
               >
-                Login
                 <User size={17} />
+                Login
               </Link>
 
               <CartButton />
@@ -88,7 +88,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex md:hidden mt-1">
-              <SearchBar />
+            <SearchBar />
           </div>
 
 

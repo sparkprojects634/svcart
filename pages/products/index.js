@@ -143,7 +143,7 @@ const Products = ({ products }) => {
         <link rel="icon" href="/favicon.png" />
       </Head>
 
-      <div className="mt-[140px] lg:mt-[120px] w-full">
+      <div className="mt-[140px] max-w-[1400px] lg:mt-[120px] w-full">
         <div className="flex flex-col gap-2 items-center justify-center pb-6">
           <h1 className="text-xl lg:text-3xl">Shop All</h1>
           <p className="text-center px-4">
@@ -163,189 +163,311 @@ const Products = ({ products }) => {
         />
 
         {/* ✅ Product Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-0.5 lg:gap-3 px-0 lg:px-6 mb-10">
-          {loading ? (
-            <p className="col-span-full text-center min-h-screen">Loading...</p>
-          ) : (
-            currentProducts.map((product) => {
-              const inWishlist = isInWishlist(product.id);
-              let displayPrice = null;
-              let firstVariation = null;
+<div className="grid grid-cols-2 gap-[8px] px-[8px] mb-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-[12px] lg:px-6">
+  {loading ? (
+    <p className="col-span-full min-h-screen text-center text-sm">
+      Loading...
+    </p>
+  ) : (
+    currentProducts.map((product) => {
+      const inWishlist = isInWishlist(product.id);
 
-              if (
-                product.__typename === "VariableProduct" &&
-                product.variations?.nodes?.length > 0
-              ) {
-                const sorted = [...product.variations.nodes].sort(
-                  (a, b) => parseFloat(a.price) - parseFloat(b.price)
-                );
-                firstVariation = sorted[0];
-                displayPrice = firstVariation.price;
-              }
+      let displayPrice = null;
+      let firstVariation = null;
 
-              const handleWishlistClick = () => {
-                if (inWishlist) {
-                  removeFromWishlist(product.id);
-                } else {
-                  addToWishlist({
-                    productId: product.id,
-                    name: product.name,
-                    image: product.featuredImage?.node?.sourceUrl || "/placeholder.jpg",
-                    color: "",
-                    size: "",
-                    product: product.description,
-                    quantity: 1,
-                    price:
-                      product.__typename === "VariableProduct"
-                        ? parseFloat(product.variations?.nodes?.[0]?.price || 0)
-                        : parseFloat(product.price || 0),
-                    slug: product.slug,
-                  });
+      if (
+        product.__typename === "VariableProduct" &&
+        product.variations?.nodes?.length > 0
+      ) {
+        const sorted = [...product.variations.nodes].sort(
+          (a, b) =>
+            parseFloat(a.price || 0) - parseFloat(b.price || 0)
+        );
+
+        firstVariation = sorted[0];
+        displayPrice = firstVariation?.price;
+      }
+
+      const handleWishlistClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (inWishlist) {
+          removeFromWishlist(product.id);
+        } else {
+          addToWishlist({
+            productId: product.id,
+            name: product.name,
+            image:
+              product.featuredImage?.node?.sourceUrl ||
+              "/placeholder.jpg",
+            color: "",
+            size: "",
+            product: product.description,
+            quantity: 1,
+            price:
+              product.__typename === "VariableProduct"
+                ? parseFloat(
+                    firstVariation?.price || 0
+                  )
+                : parseFloat(product.price || 0),
+            slug: product.slug,
+          });
+        }
+      };
+
+      const getProductPrice = () => {
+        if (product.__typename === "VariableProduct") {
+          if (!firstVariation) return null;
+
+          return (
+            <div className="flex items-center gap-[5px]">
+              {firstVariation.salePrice ? (
+                <>
+                  <span className="text-[11px] font-medium text-[#0C3A73]">
+                    ₹{firstVariation.salePrice}
+                  </span>
+
+                  <span className="text-[8px] text-gray-400 line-through">
+                    ₹{firstVariation.regularPrice}
+                  </span>
+                </>
+              ) : (
+                <span className="text-[11px] font-medium text-[#0C3A73]">
+                  ₹{firstVariation.regularPrice}
+                </span>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex items-center gap-[5px]">
+            {product.salePrice ? (
+              <>
+                <span className="text-[11px] font-medium text-[#0C3A73]">
+                  ₹{product.salePrice}
+                </span>
+
+                <span className="text-[8px] text-gray-400 line-through">
+                  ₹{product.regularPrice}
+                </span>
+              </>
+            ) : (
+              <span className="text-[11px] font-medium text-[#0C3A73]">
+                ₹{product.regularPrice || product.price}
+              </span>
+            )}
+          </div>
+        );
+      };
+
+      return (
+        <div
+          key={product.id}
+          className="
+            relative
+            flex
+            min-w-0
+            flex-col
+            overflow-hidden
+            rounded-[9px]
+            bg-white
+            p-[6px]
+            shadow-[0_1px_5px_rgba(0,0,0,0.04)]
+            sm:p-[8px]
+            lg:rounded-[10px]
+          "
+        >
+          {/* =================================
+              PRODUCT IMAGE
+          ================================= */}
+          <Link
+            href={`/products/${product.slug}`}
+            className="group relative block w-full"
+          >
+            <div
+              className="
+                relative
+                aspect-square
+                w-full
+                overflow-hidden
+                rounded-[5px]
+                bg-[#f7f7f7]
+                sm:rounded-[6px]
+              "
+            >
+              <Image
+                src={
+                  product.featuredImage?.node?.sourceUrl ||
+                  "/placeholder.jpg"
                 }
-              };
-              return (
-                <div
-                  key={product.id}
-                  className="bg-white shadow-sm rounded-none lg:rounded-[10px] flex flex-col items-center overflow-hidden pb-4 relative"
-                >
-                  {product.productTags?.nodes?.length > 0 && (
-                    <div className="bg-black/70 px-[7px] py-[5px] lg:px-4 lg:py-2 text-[8px] lg:text-[12px] text-white text-center absolute rounded-2xl z-10 uppercase top-2 left-2">
-                      {product.productTags.nodes[0].name}
-                    </div>
-                  )}
+                alt={product.name}
+                fill
+                sizes="
+                  (max-width: 640px) 50vw,
+                  (max-width: 1024px) 33vw,
+                  25vw
+                "
+                className="
+                  object-cover
+                  object-center
+                  transition-opacity
+                  duration-300
+                  group-hover:opacity-0
+                "
+              />
 
-                  <div className="bg-white/40 pt-2 px-2 rounded-full absolute z-10 uppercase top-2 right-2">
-                    <button onClick={handleWishlistClick}>
-                      {inWishlist ? (
-                        <Heart fill="red" stroke="red" />
-                      ) : (
-                        <HeartOutline className="text-gray-500" />
-                      )}
-                    </button>
-                  </div>
+              {/* Hover Image */}
+              {product.galleryImages?.nodes?.length > 0 && (
+                <Image
+                  src={product.galleryImages.nodes[0].sourceUrl}
+                  alt={`${product.name} gallery`}
+                  fill
+                  sizes="
+                    (max-width: 640px) 50vw,
+                    (max-width: 1024px) 33vw,
+                    25vw
+                  "
+                  className="
+                    absolute
+                    inset-0
+                    object-cover
+                    object-center
+                    opacity-0
+                    transition-opacity
+                    duration-300
+                    group-hover:opacity-100
+                  "
+                />
+              )}
+            </div>
+          </Link>
 
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="w-full relative group"
-                  >
-                    <Image
-                      src={product.featuredImage?.node?.sourceUrl || "/placeholder.jpg"}
-                      alt={product.name}
-                      width={600}
-                      height={300}
-                      className="object-cover object-top max-h-[248px] lg:max-h-[600px] transition-opacity duration-300 group-hover:opacity-0"
-                    />
-                    {product.galleryImages?.nodes?.length > 0 && (
-                      <Image
-                        src={product.galleryImages.nodes[0].sourceUrl}
-                        alt={`${product.name} gallery`}
-                        width={600}
-                        height={300}
-                        className="object-cover object-top absolute top-0 left-0 w-full h-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                      />
-                    )}
-                  </Link>
+          {/* =================================
+              PRODUCT DETAILS
+          ================================= */}
+          <div className="flex flex-1 flex-col px-[1px] pt-[6px]">
+            <Link href={`/products/${product.slug}`}>
+              <h3
+                className="
+                  line-clamp-1
+                  text-[9px]
+                  font-medium
+                  leading-[1.3]
+                  text-[#0C3A73]
+                  hover:underline
+                  sm:text-[10px]
+                "
+                title={product.name}
+              >
+                {product.name}
+              </h3>
+            </Link>
 
-                  <div className="flex w-full flex-col border-t lg:flex-row items-start lg:items-center lg:justify-between px-3">
-                    <div className="flex flex-col gap-1">
-                      <Link href={`/products/${product.slug}`} className="hover:underline">
-                        <h3 className="mt-4 text-left text-sm lg:text-lg font-semibold">
-                          {product.name.length > 35
-                            ? product.name.substring(0, 40) + "..."
-                            : product.name}
-                        </h3>
-                      </Link>
-                      <p className="text-sm text-gray-500">
-                        {product.productCategories?.nodes?.[0]?.name || ""}
-                      </p>
-                    </div>
-                  </div>
+            {/* Price */}
+            <div className="mt-[3px]">
+              {getProductPrice()}
+            </div>
 
-                  <div className="mt-2 px-3 w-full">
-                    {(() => {
-                      const colors =
-                        product.attributes?.nodes
-                          ?.filter((attr) => attr.name === "pa_color")
-                          ?.flatMap((attr) => attr.options) || [];
+            {/* Buy Now */}
+            <Link
+              href={`/products/${product.slug}`}
+              className="
+                mt-[5px]
+                flex
+                h-[17px]
+                w-[57px]
+                items-center
+                justify-center
+                rounded-[2px]
+                bg-[#0C3A73]
+                text-[7px]
+                font-medium
+                text-white
+                transition-all
+                duration-200
+                hover:bg-[#092f5d]
+                sm:h-[19px]
+                sm:w-[62px]
+                sm:text-[8px]
+              "
+            >
+              Buy Now
+            </Link>
+          </div>
 
-                      const limitedColors = colors.slice(0, 3);
-                      const remaining = colors.length - 3;
+          {/* =================================
+              WISHLIST
+              Keeps existing functionality
+          ================================= */}
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            aria-label={
+              inWishlist
+                ? "Remove from wishlist"
+                : "Add to wishlist"
+            }
+            className="
+              absolute
+              right-[7px]
+              top-[7px]
+              z-10
+              flex
+              h-[22px]
+              w-[22px]
+              items-center
+              justify-center
+              rounded-full
+              bg-white/90
+              opacity-0
+              transition-opacity
+              duration-200
+              group-hover:opacity-100
+            "
+          >
+            {inWishlist ? (
+              <Heart
+                size={12}
+                fill="red"
+                stroke="red"
+              />
+            ) : (
+              <HeartOutline className="h-[12px] w-[12px] text-gray-500" />
+            )}
+          </button>
 
-                      return (
-                        <div className="flex items-start lg:items-center gap-2 flex-col lg:flex-row justify-start lg:justify-between">
-                          <div className="flex items-center justify-center gap-1">
-                            {limitedColors.map((color, index) => (
-                              <span
-                                key={index}
-                                className="inline-block w-3 lg:w-5 h-3 lg:h-5 rounded-full border hover:border-black border-gray-300"
-                                style={{ background: colorMap[color] || "#ccc" }}
-                                title={color}
-                              />
-                            ))}
-                            {remaining > 0 && (
-                              <span className="inline-flex -ml-1 items-center font-geograph-md underline justify-center w-5 h-5 text-[12px] lg:text-sm text-black">
-                                +{remaining}
-                              </span>
-                            )}
-                          </div>
-
-                          {product.__typename === "SimpleProduct" && (
-                            <div className="text-center">
-                              {product.salePrice ? (
-                                <>
-                                  <p className="text-md lg:text-lg font-bold price-font text-red-600">
-                                    ₹ {product.salePrice}
-                                  </p>
-                                  <p className="text-sm line-through price-font text-gray-500">
-                                    ₹ {product.regularPrice}
-                                  </p>
-                                  <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">
-                                    {getDiscountPercent(product.regularPrice, product.salePrice)}% OFF
-                                  </span>
-                                </>
-                              ) : (
-                                <p className="text-md lg:text-lg price-font">
-                                  ₹ {product.regularPrice}
-                                </p>
-                              )}
-                            </div>
-                          )}
-
-                          {product.__typename === "VariableProduct" && firstVariation && (
-                            <div className="text-center flex items-center gap-1">
-                              {firstVariation.salePrice ? (
-                                <>
-                                  <p className="text-md lg:text-lg price-font text-black">
-                                    D {firstVariation.salePrice}
-                                  </p>
-                                  <p className="text-sm line-through price-font text-gray-500">
-                                    D {firstVariation.regularPrice}
-                                  </p>
-                                  <span className="text-sm text-red-500">
-                                    (
-                                    {getDiscountPercent(
-                                      firstVariation.regularPrice,
-                                      firstVariation.salePrice
-                                    )}
-                                    % OFF)
-                                  </span>
-                                </>
-                              ) : (
-                                <p className="text-md lg:text-lg price-font">
-                                  D {firstVariation.regularPrice}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              );
-            })
+          {/* =================================
+              PRODUCT TAG
+              Keeps existing functionality
+          ================================= */}
+          {product.productTags?.nodes?.length > 0 && (
+            <div
+              className="
+                absolute
+                left-[8px]
+                top-[8px]
+                z-10
+                max-w-[60px]
+                truncate
+                rounded-[3px]
+                bg-black/70
+                px-[4px]
+                py-[2px]
+                text-[5px]
+                uppercase
+                text-white
+              "
+            >
+              {product.productTags.nodes[0].name}
+            </div>
           )}
         </div>
+      );
+    })
+  )}
+</div>
       </div>
     </Layout>
   );
