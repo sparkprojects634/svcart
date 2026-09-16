@@ -380,7 +380,6 @@ const MyAccount = () => {
                                                         alt="Profile"
                                                         width={100}
                                                         height={100}
-                                                        quality={100}
                                                         unoptimized
                                                         className="rounded-full border-4 border-gray-200"
                                                     />

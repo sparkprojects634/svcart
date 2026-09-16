@@ -102,7 +102,6 @@ export default function CustomizeSection() {
                                             fill
                                             className="object-contain"
                                             unoptimized
-                                            quality={100}
                                         />
                                     </div>
                                 </div>

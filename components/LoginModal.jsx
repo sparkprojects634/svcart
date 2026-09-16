@@ -1,210 +1,287 @@
-import { useState, useEffect } from "react";
-import { User, Mail, Lock, ArrowRight, XCircle, Phone, X, ArrowLeft } from "lucide-react";
-import { InputField } from "./InputField";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FcGoogle } from "react-icons/fc";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { signIn } from "next-auth/react";
+import { FcGoogle } from "react-icons/fc";
+import {
+    Mail,
+    ArrowRight,
+    ArrowLeft,
+    X,
+    XCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 const LoginModal = ({ isOpen, onClose }) => {
     const router = useRouter();
 
-    const [isLogin, setIsLogin] = useState(true);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [step, setStep] = useState("email");
+
+    const [email, setEmail] = useState("");
+    const [otp, setOtp] = useState("");
+
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [success, setSuccess] = useState("");
+    const [googleLoading, setGoogleLoading] = useState(false);
 
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-    });
+    const [error, setError] = useState("");
 
-    useEffect(() => {
-        setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            password: "",
-            confirmPassword: "",
-        });
+    const [resendTimer, setResendTimer] = useState(0);
 
-        setErrors({});
-        setSuccess("");
-    }, [isLogin]);
+    // --------------------------------------------------
+    // RESET MODAL
+    // --------------------------------------------------
 
     useEffect(() => {
         if (!isOpen) return;
 
-        const originalOverflow = document.body.style.overflow;
+        setStep("email");
+        setEmail("");
+        setOtp("");
+        setError("");
+        setLoading(false);
+        setResendTimer(0);
+    }, [isOpen]);
+
+    // --------------------------------------------------
+    // BODY SCROLL
+    // --------------------------------------------------
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const originalOverflow =
+            document.body.style.overflow;
 
         document.body.style.overflow = "hidden";
 
         return () => {
-            document.body.style.overflow = originalOverflow;
+            document.body.style.overflow =
+                originalOverflow;
         };
     }, [isOpen]);
+
+    // --------------------------------------------------
+    // ESCAPE
+    // --------------------------------------------------
 
     useEffect(() => {
         if (!isOpen) return;
 
         const handleKeyDown = (e) => {
-            if (e.key === "Escape" && !loading) {
+            if (
+                e.key === "Escape" &&
+                !loading &&
+                !googleLoading
+            ) {
                 onClose?.();
             }
         };
 
-        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener(
+            "keydown",
+            handleKeyDown
+        );
 
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener(
+                "keydown",
+                handleKeyDown
+            );
         };
-    }, [isOpen, loading, onClose]);
+    }, [
+        isOpen,
+        loading,
+        googleLoading,
+        onClose,
+    ]);
 
-    const validateEmail = (email) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    // --------------------------------------------------
+    // RESEND TIMER
+    // --------------------------------------------------
 
-    const validatePassword = (password) =>
-        password.length >= 6;
+    useEffect(() => {
+        if (resendTimer <= 0) return;
 
-    const validateForm = () => {
-        const newErrors = {};
+        const timer = setInterval(() => {
+            setResendTimer((prev) =>
+                prev > 0 ? prev - 1 : 0
+            );
+        }, 1000);
 
-        if (!formData.email) {
-            newErrors.email = "Email is required";
-        } else if (!validateEmail(formData.email)) {
-            newErrors.email = "Please enter a valid email";
-        }
+        return () => clearInterval(timer);
+    }, [resendTimer]);
 
-        if (!formData.password) {
-            newErrors.password = "Password is required";
-        } else if (!validatePassword(formData.password)) {
-            newErrors.password =
-                "Password must be at least 6 characters";
-        }
+    // --------------------------------------------------
+    // EMAIL VALIDATION
+    // --------------------------------------------------
 
-        if (!isLogin) {
-            if (!formData.name) {
-                newErrors.name = "Name is required";
-            }
-
-            if (!formData.phone) {
-                newErrors.phone =
-                    "Phone number is required";
-            } else if (!/^\d{10}$/.test(formData.phone)) {
-                newErrors.phone =
-                    "Please enter a valid 10-digit phone number";
-            }
-
-            if (!formData.confirmPassword) {
-                newErrors.confirmPassword =
-                    "Please confirm your password";
-            } else if (
-                formData.password !==
-                formData.confirmPassword
-            ) {
-                newErrors.confirmPassword =
-                    "Passwords do not match";
-            }
-        }
-
-        return newErrors;
+    const validateEmail = (value) => {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            value
+        );
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
+    // --------------------------------------------------
+    // SEND OTP
+    // --------------------------------------------------
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+    const sendOTP = async () => {
+        const cleanEmail =
+            email.trim().toLowerCase();
 
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: "",
-            }));
+        setError("");
+
+        if (!cleanEmail) {
+            setError(
+                "Please enter your email address."
+            );
+            return;
         }
-    };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (!validateEmail(cleanEmail)) {
+            setError(
+                "Please enter a valid email address."
+            );
+            return;
+        }
 
-        const newErrors = validateForm();
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+        if (resendTimer > 0) {
             return;
         }
 
         setLoading(true);
-        setErrors({});
-        setSuccess("");
 
         try {
-            const res = await fetch("/api/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    isLogin,
-                }),
-            });
+            const response = await fetch(
+                "/api/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        action: "send-otp",
+                        email: cleanEmail,
+                    }),
+                }
+            );
 
-            const data = await res.json();
+            const data =
+                await response.json();
 
-            if (!data.success) {
-                setErrors({
-                    submit: data.message,
-                });
-
+            if (!response.ok || !data.success) {
+                setError(
+                    data.message ||
+                        "Unable to send verification code."
+                );
                 return;
             }
 
-            toast.success(data.message);
+            setEmail(cleanEmail);
+            setStep("otp");
+            setOtp("");
 
-            setSuccess(data.message);
+            setResendTimer(60);
 
-            if (isLogin) {
-                setTimeout(() => {
-                    onClose?.();
-                    router.push("/");
-                }, 1000);
-            } else {
-                setTimeout(() => {
-                    setIsLogin(true);
+            toast.success(
+                "Verification code sent to your email."
+            );
 
-                    setFormData({
-                        name: "",
-                        email: "",
-                        phone: "",
-                        password: "",
-                        confirmPassword: "",
-                    });
+        } catch (error) {
+            console.error(
+                "Send OTP error:",
+                error
+            );
 
-                    setSuccess("");
-                }, 1000);
-            }
-        } catch (err) {
-            setErrors({
-                submit:
-                    "Something went wrong. Please try again.",
-            });
+            setError(
+                "Something went wrong. Please try again."
+            );
         } finally {
             setLoading(false);
         }
     };
 
+    // --------------------------------------------------
+    // VERIFY OTP
+    // --------------------------------------------------
+
+    const verifyOTP = async (e) => {
+        e?.preventDefault();
+
+        setError("");
+
+        if (otp.length !== 6) {
+            setError(
+                "Please enter the 6-digit verification code."
+            );
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await fetch(
+                "/api/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+                    body: JSON.stringify({
+                        action: "verify-otp",
+                        email,
+                        otp,
+                    }),
+                }
+            );
+
+            const data =
+                await response.json();
+
+            if (!response.ok || !data.success) {
+                setError(
+                    data.message ||
+                        "Invalid verification code."
+                );
+                return;
+            }
+
+            toast.success(
+                "Login successful!"
+            );
+
+            // Close modal
+            onClose?.();
+
+            // Go home
+            router.push("/");
+
+        } catch (error) {
+            console.error(
+                "Verify OTP error:",
+                error
+            );
+
+            setError(
+                "Something went wrong. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --------------------------------------------------
+    // GOOGLE LOGIN
+    // --------------------------------------------------
+
     const handleGoogleLogin = async () => {
-        if (loading) return;
+        if (loading || googleLoading) return;
+
+        setGoogleLoading(true);
+        setError("");
 
         try {
             await signIn("google", {
@@ -216,33 +293,61 @@ const LoginModal = ({ isOpen, onClose }) => {
                 error
             );
 
-            setErrors({
-                submit:
-                    "Unable to continue with Google.",
-            });
+            setError(
+                "Unable to continue with Google."
+            );
+
+            setGoogleLoading(false);
         }
+    };
+
+    // --------------------------------------------------
+    // BACK TO EMAIL
+    // --------------------------------------------------
+
+    const changeEmail = () => {
+        if (loading) return;
+
+        setStep("email");
+        setOtp("");
+        setError("");
+        setResendTimer(0);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-[2px]"
+        <div
+            className="
+                fixed
+                inset-0
+                z-[9999]
+                flex
+                items-center
+                justify-center
+                bg-black/60
+                backdrop-blur-[2px]
+            "
             onMouseDown={(e) => {
                 if (
                     e.target === e.currentTarget &&
-                    !loading
+                    !loading &&
+                    !googleLoading
                 ) {
                     onClose?.();
                 }
             }}
         >
+
+            {/* =====================================================
+                DESKTOP
+            ====================================================== */}
+
             <div
                 className="
                     relative
                     hidden
-                    h-auto
                     w-full
-                    mx-auto
                     max-w-[500px]
                     overflow-hidden
                     rounded-[18px]
@@ -251,10 +356,16 @@ const LoginModal = ({ isOpen, onClose }) => {
                     lg:flex
                 "
             >
+
+                {/* CLOSE */}
+
                 <button
                     type="button"
                     onClick={onClose}
-                    disabled={loading}
+                    disabled={
+                        loading ||
+                        googleLoading
+                    }
                     className="
                         absolute
                         right-5
@@ -266,62 +377,102 @@ const LoginModal = ({ isOpen, onClose }) => {
                         items-center
                         justify-center
                         rounded-full
-                        bg-white/90
+                        bg-white
                         text-black
                         shadow-sm
                         transition
-                        hover:bg-white
+                        hover:bg-gray-100
                         disabled:opacity-50
                     "
                 >
                     <X size={18} />
                 </button>
 
-                {/* <div className="relative h-full overflow-hidden">
-                    <Image
-                        src="https://dashboard.svcart.shop/wp-content/uploads/2026/07/auth-page-banner.png"
-                        alt="SV Cart"
-                        fill
-                        priority
-                        className="object-cover"
-                        sizes="490px"
-                    />
+                <div
+                    className="
+                        relative
+                        flex
+                        w-full
+                        items-center
+                        justify-center
+                        bg-white
+                        px-12
+                        py-10
+                    "
+                >
 
-                    <div className="absolute inset-0 bg-black/20" />
-                </div> */}
+                    <div
+                        className="
+                            w-full
+                            max-w-[390px]
+                            text-center
+                        "
+                    >
 
-                <div className="relative flex w-full h-full items-center justify-center overflow-y-auto bg-white px-12 py-10">
-                    <div className="w-full text-center max-w-[390px]">
-                        <div className="mb-5 flex w-full justify-center">
-                            <Link href="/" onClick={onClose}>
+                        {/* LOGO */}
+
+                        <div
+                            className="
+                                mb-5
+                                flex
+                                w-full
+                                justify-center
+                            "
+                        >
+                            <Link
+                                href="/"
+                                onClick={onClose}
+                            >
                                 <Image
                                     src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/favicon.png"
                                     alt="SV Cart"
                                     width={80}
                                     height={40}
-                                    className="h-auto w-[70px] object-contain"
+                                    className="
+                                        h-auto
+                                        w-[70px]
+                                        object-contain
+                                    "
                                 />
                             </Link>
                         </div>
 
+                        {/* TITLE */}
+
                         <div className="mb-6">
-                            <h2 className="text-[27px] font-bold leading-tight text-black">
-                                {isLogin
-                                    ? "Welcome Back"
-                                    : "Create Account"}
+                            <h2
+                                className="
+                                    text-[27px]
+                                    font-bold
+                                    leading-tight
+                                    text-black
+                                "
+                            >
+                                Welcome to SV Cart
                             </h2>
 
-                            <p className="mt-1 text-[13px] text-black/60">
-                                {isLogin
-                                    ? "Sign in to your account"
-                                    : "Join us today"}
+                            <p
+                                className="
+                                    mt-1
+                                    text-[13px]
+                                    text-black/60
+                                "
+                            >
+                                Login or create your account
                             </p>
                         </div>
 
+                        {/* GOOGLE */}
+
                         <button
                             type="button"
-                            onClick={handleGoogleLogin}
-                            disabled={loading}
+                            onClick={
+                                handleGoogleLogin
+                            }
+                            disabled={
+                                loading ||
+                                googleLoading
+                            }
                             className="
                                 flex
                                 h-[44px]
@@ -342,183 +493,353 @@ const LoginModal = ({ isOpen, onClose }) => {
                             "
                         >
                             <FcGoogle size={19} />
-                            Continue with Google
+
+                            {googleLoading
+                                ? "Connecting..."
+                                : "Continue with Google"}
                         </button>
 
-                        <div className="my-5 flex items-center gap-3">
+                        {/* OR */}
+
+                        <div
+                            className="
+                                my-5
+                                flex
+                                items-center
+                                gap-3
+                            "
+                        >
                             <div className="h-px flex-1 bg-gray-200" />
 
-                            <span className="text-[10px] text-gray-400">
+                            <span
+                                className="
+                                    text-[10px]
+                                    text-gray-400
+                                "
+                            >
                                 OR
                             </span>
 
                             <div className="h-px flex-1 bg-gray-200" />
                         </div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="space-y-3">
+                        {/* =================================================
+                            EMAIL STEP
+                        ================================================= */}
 
-                                {!isLogin && (
-                                    <InputField
-                                        type="text"
-                                        name="name"
-                                        placeholder="Full Name"
-                                        icon={User}
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        error={errors.name}
-                                    />
-                                )}
-
-                                <InputField
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email Address"
-                                    icon={Mail}
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    error={errors.email}
-                                />
-
-                                {!isLogin && (
-                                    <InputField
-                                        type="number"
-                                        name="phone"
-                                        placeholder="Phone Number"
-                                        icon={Phone}
-                                        value={formData.phone}
-                                        onChange={handleInputChange}
-                                        error={errors.phone}
-                                    />
-                                )}
-
-                                <InputField
-                                    type="password"
-                                    name="password"
-                                    placeholder="Password"
-                                    icon={Lock}
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    showPasswordToggle
-                                    showPassword={showPassword}
-                                    onTogglePassword={() =>
-                                        setShowPassword(
-                                            !showPassword
-                                        )
-                                    }
-                                    error={errors.password}
-                                />
-
-                                {!isLogin && (
-                                    <InputField
-                                        type="password"
-                                        name="confirmPassword"
-                                        placeholder="Confirm Password"
-                                        icon={Lock}
-                                        value={
-                                            formData.confirmPassword
-                                        }
-                                        onChange={
-                                            handleInputChange
-                                        }
-                                        showPasswordToggle
-                                        showPassword={
-                                            showConfirmPassword
-                                        }
-                                        onTogglePassword={() =>
-                                            setShowConfirmPassword(
-                                                !showConfirmPassword
-                                            )
-                                        }
-                                        error={
-                                            errors.confirmPassword
-                                        }
-                                    />
-                                )}
-
-                                {errors.submit && (
-                                    <div className="flex items-center gap-1 text-[11px] text-red-600">
-                                        <XCircle size={13} />
-                                        {errors.submit}
-                                    </div>
-                                )}
-
-                                {isLogin && (
-                                    <div className="pt-1 text-left">
-                                        <Link
-                                            href="/forgot-password"
-                                            onClick={onClose}
-                                            className="text-sm text-black hover:underline"
-                                        >
-                                            Forgot Password?
-                                        </Link>
-                                    </div>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="
-                                        flex
-                                        h-[44px]
-                                        w-full
-                                        items-center
-                                        justify-center
-                                        rounded-[8px]
-                                        bg-[#FFC200]
-                                        text-[13px]
-                                        font-medium
-                                        text-black
-                                        transition
-                                        hover:bg-[#FFD000]
-                                        disabled:cursor-not-allowed
-                                        disabled:opacity-60
-                                    "
-                                >
-                                    {loading ? (
-                                        <span className="flex items-center gap-2">
-                                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
-                                            {isLogin
-                                                ? "Signing In..."
-                                                : "Creating Account..."}
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-2">
-                                            {isLogin
-                                                ? "Sign In"
-                                                : "Create Account"}
-
-                                            <ArrowRight size={15} />
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="mt-5 text-center text-sm text-black/60">
-                            {isLogin
-                                ? "Don't have an account?"
-                                : "Already have an account?"}
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setIsLogin(!isLogin)
-                                }
-                                className="ml-1 font-medium text-black underline"
+                        {step === "email" && (
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    sendOTP();
+                                }}
                             >
-                                {isLogin
-                                    ? "Sign Up"
-                                    : "Sign In"}
-                            </button>
-                        </div>
+                                <div className="space-y-3">
 
-                        <p className="mt-4 text-center text-xs leading-[1.5] text-black/50">
-                            By{" "}
-                            {isLogin
-                                ? "signing in"
-                                : "creating an account"}
-                            , you agree to our{" "}
+                                    <div className="relative">
+                                        <Mail
+                                            size={17}
+                                            className="
+                                                absolute
+                                                left-4
+                                                top-1/2
+                                                -translate-y-1/2
+                                                text-gray-400
+                                            "
+                                        />
+
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => {
+                                                setEmail(
+                                                    e.target.value
+                                                );
+                                                setError("");
+                                            }}
+                                            placeholder="Email Address"
+                                            autoComplete="email"
+                                            className="
+                                                h-[44px]
+                                                w-full
+                                                rounded-[8px]
+                                                border
+                                                border-gray-300
+                                                bg-white
+                                                pl-11
+                                                pr-4
+                                                text-[13px]
+                                                text-black
+                                                outline-none
+                                                transition
+                                                focus:border-[#0C3A73]
+                                            "
+                                        />
+                                    </div>
+
+                                    {error && (
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-1
+                                                text-left
+                                                text-[11px]
+                                                text-red-600
+                                            "
+                                        >
+                                            <XCircle size={13} />
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="
+                                            flex
+                                            h-[44px]
+                                            w-full
+                                            items-center
+                                            justify-center
+                                            rounded-[8px]
+                                            bg-[#FFC200]
+                                            text-[13px]
+                                            font-medium
+                                            text-black
+                                            transition
+                                            hover:bg-[#FFD000]
+                                            disabled:cursor-not-allowed
+                                            disabled:opacity-60
+                                        "
+                                    >
+                                        {loading ? (
+                                            <span className="flex items-center gap-2">
+                                                <span
+                                                    className="
+                                                        h-4
+                                                        w-4
+                                                        animate-spin
+                                                        rounded-full
+                                                        border-2
+                                                        border-black/30
+                                                        border-t-black
+                                                    "
+                                                />
+                                                Sending Code...
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                Continue with Email
+                                                <ArrowRight size={15} />
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* =================================================
+                            OTP STEP
+                        ================================================= */}
+
+                        {step === "otp" && (
+                            <form
+                                onSubmit={verifyOTP}
+                            >
+                                <div className="space-y-3">
+
+                                    <div
+                                        className="
+                                            mb-3
+                                            text-left
+                                        "
+                                    >
+                                        <p
+                                            className="
+                                                text-[12px]
+                                                text-gray-500
+                                            "
+                                        >
+                                            Verification code sent to
+                                        </p>
+
+                                        <p
+                                            className="
+                                                mt-1
+                                                text-[13px]
+                                                font-medium
+                                                text-black
+                                            "
+                                        >
+                                            {email}
+                                        </p>
+                                    </div>
+
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        autoComplete="one-time-code"
+                                        value={otp}
+                                        onChange={(e) => {
+                                            const value =
+                                                e.target.value
+                                                    .replace(
+                                                        /\D/g,
+                                                        ""
+                                                    )
+                                                    .slice(0, 6);
+
+                                            setOtp(value);
+                                            setError("");
+                                        }}
+                                        placeholder="Enter 6-digit code"
+                                        maxLength={6}
+                                        autoFocus
+                                        className="
+                                            h-[50px]
+                                            w-full
+                                            rounded-[8px]
+                                            border
+                                            border-gray-300
+                                            bg-white
+                                            px-4
+                                            text-center
+                                            text-[20px]
+                                            font-semibold
+                                            tracking-[7px]
+                                            text-black
+                                            outline-none
+                                            transition
+                                            focus:border-[#0C3A73]
+                                        "
+                                    />
+
+                                    {error && (
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-1
+                                                text-left
+                                                text-[11px]
+                                                text-red-600
+                                            "
+                                        >
+                                            <XCircle size={13} />
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={
+                                            loading ||
+                                            otp.length !== 6
+                                        }
+                                        className="
+                                            flex
+                                            h-[44px]
+                                            w-full
+                                            items-center
+                                            justify-center
+                                            rounded-[8px]
+                                            bg-[#FFC200]
+                                            text-[13px]
+                                            font-medium
+                                            text-black
+                                            transition
+                                            hover:bg-[#FFD000]
+                                            disabled:cursor-not-allowed
+                                            disabled:opacity-60
+                                        "
+                                    >
+                                        {loading ? (
+                                            <span className="flex items-center gap-2">
+                                                <span
+                                                    className="
+                                                        h-4
+                                                        w-4
+                                                        animate-spin
+                                                        rounded-full
+                                                        border-2
+                                                        border-black/30
+                                                        border-t-black
+                                                    "
+                                                />
+                                                Verifying...
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-2">
+                                                Verify & Login
+                                                <ArrowRight size={15} />
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            justify-between
+                                            pt-2
+                                        "
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                changeEmail
+                                            }
+                                            disabled={
+                                                loading
+                                            }
+                                            className="
+                                                text-[12px]
+                                                text-black
+                                                underline
+                                            "
+                                        >
+                                            Change email
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                sendOTP
+                                            }
+                                            disabled={
+                                                loading ||
+                                                resendTimer > 0
+                                            }
+                                            className="
+                                                text-[12px]
+                                                font-medium
+                                                text-[#0C3A73]
+                                                disabled:text-gray-400
+                                            "
+                                        >
+                                            {resendTimer > 0
+                                                ? `Resend in ${resendTimer}s`
+                                                : "Resend code"}
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        )}
+
+                        {/* TERMS */}
+
+                        <p
+                            className="
+                                mt-5
+                                text-center
+                                text-xs
+                                leading-[1.5]
+                                text-black/50
+                            "
+                        >
+                            By continuing, you agree to our{" "}
                             <Link
                                 href="/terms-condition"
                                 onClick={onClose}
@@ -535,15 +856,21 @@ const LoginModal = ({ isOpen, onClose }) => {
                                 Privacy Policy
                             </Link>
                         </p>
+
                     </div>
                 </div>
             </div>
+
+            {/* =====================================================
+                MOBILE
+            ====================================================== */}
 
             <div
                 className="
                     relative
                     flex
                     h-full
+                    max-h-[100vh]
                     w-full
                     flex-col
                     overflow-hidden
@@ -551,7 +878,18 @@ const LoginModal = ({ isOpen, onClose }) => {
                     lg:hidden
                 "
             >
-                <div className="relative h-[40%] min-h-[390px] w-full bg-[#eefafa]">
+
+                {/* MOBILE IMAGE */}
+
+                <div
+                    className="
+                        relative
+                        h-[55%]
+                        min-h-[300px]
+                        w-full
+                        bg-[#eefafa]
+                    "
+                >
                     <Image
                         src="/login.png"
                         alt="SV Cart products"
@@ -560,6 +898,8 @@ const LoginModal = ({ isOpen, onClose }) => {
                         className="object-cover"
                         sizes="100vw"
                     />
+
+                    {/* BACK */}
 
                     <button
                         type="button"
@@ -585,6 +925,8 @@ const LoginModal = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
+                {/* MOBILE FORM */}
+
                 <div
                     className="
                         relative
@@ -597,37 +939,75 @@ const LoginModal = ({ isOpen, onClose }) => {
                         pt-7
                     "
                 >
-                    <div className="mx-auto w-full max-w-[360px]">
-                        <div className="mb-3 flex justify-center">
-                            <Link href="/" onClick={onClose}>
-                                <Image
-                                    src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/favicon.png"
-                                    alt="SV Cart"
-                                    width={50}
-                                    height={50}
-                                    className="h-[60px] w-[60px] object-contain"
-                                />
-                            </Link>
+
+                    <div
+                        className="
+                            mx-auto
+                            w-full
+                            max-w-[360px]
+                        "
+                    >
+
+                        {/* LOGO */}
+
+                        <div
+                            className="
+                                mb-3
+                                flex
+                                justify-center
+                            "
+                        >
+                            <Image
+                                src="https://dashboard.svcart.shop/wp-content/uploads/2025/12/favicon.png"
+                                alt="SV Cart"
+                                width={50}
+                                height={50}
+                                className="
+                                    h-[60px]
+                                    w-[60px]
+                                    object-contain
+                                "
+                            />
                         </div>
+
+                        {/* TITLE */}
 
                         <div className="text-center">
-                            <h2 className="text-[20px] font-bold leading-tight text-[#222]">
-                                {isLogin
-                                    ? "Welcome Back"
-                                    : "Create Account"}
+
+                            <h2
+                                className="
+                                    text-[20px]
+                                    font-bold
+                                    leading-tight
+                                    text-[#222]
+                                "
+                            >
+                                Welcome to SV Cart
                             </h2>
 
-                            <p className="mt-1 text-[12px] text-[#555]">
-                                {isLogin
-                                    ? "Sign in to your account"
-                                    : "Join us today"}
+                            <p
+                                className="
+                                    mt-1
+                                    text-[12px]
+                                    text-[#555]
+                                "
+                            >
+                                Login or create your account
                             </p>
+
                         </div>
+
+                        {/* GOOGLE */}
 
                         <button
                             type="button"
-                            onClick={handleGoogleLogin}
-                            disabled={loading}
+                            onClick={
+                                handleGoogleLogin
+                            }
+                            disabled={
+                                loading ||
+                                googleLoading
+                            }
                             className="
                                 mt-4
                                 flex
@@ -647,182 +1027,306 @@ const LoginModal = ({ isOpen, onClose }) => {
                             "
                         >
                             <FcGoogle size={18} />
-                            Continue with Google
+
+                            {googleLoading
+                                ? "Connecting..."
+                                : "Continue with Google"}
                         </button>
 
                         {/* OR */}
-                        <div className="my-3 flex items-center gap-2">
+
+                        <div
+                            className="
+                                my-3
+                                flex
+                                items-center
+                                gap-2
+                            "
+                        >
                             <div className="h-px flex-1 bg-gray-200" />
 
-                            <span className="text-[9px] text-gray-400">
+                            <span
+                                className="
+                                    text-[9px]
+                                    text-gray-400
+                                "
+                            >
                                 OR
                             </span>
 
                             <div className="h-px flex-1 bg-gray-200" />
                         </div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="space-y-2.5">
+                        {/* EMAIL */}
 
-                                {!isLogin && (
-                                    <InputField
-                                        type="text"
-                                        name="name"
-                                        placeholder="Full Name"
-                                        icon={User}
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        error={errors.name}
-                                    />
-                                )}
-
-                                <InputField
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email Address"
-                                    icon={Mail}
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    error={errors.email}
-                                />
-
-                                {!isLogin && (
-                                    <InputField
-                                        type="number"
-                                        name="phone"
-                                        placeholder="Phone Number"
-                                        icon={Phone}
-                                        value={formData.phone}
-                                        onChange={handleInputChange}
-                                        error={errors.phone}
-                                    />
-                                )}
-
-                                <InputField
-                                    type="password"
-                                    name="password"
-                                    placeholder="Password"
-                                    icon={Lock}
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    showPasswordToggle
-                                    showPassword={showPassword}
-                                    onTogglePassword={() =>
-                                        setShowPassword(
-                                            !showPassword
-                                        )
-                                    }
-                                    error={errors.password}
-                                />
-
-                                {!isLogin && (
-                                    <InputField
-                                        type="password"
-                                        name="confirmPassword"
-                                        placeholder="Confirm Password"
-                                        icon={Lock}
-                                        value={
-                                            formData.confirmPassword
-                                        }
-                                        onChange={
-                                            handleInputChange
-                                        }
-                                        showPasswordToggle
-                                        showPassword={
-                                            showConfirmPassword
-                                        }
-                                        onTogglePassword={() =>
-                                            setShowConfirmPassword(
-                                                !showConfirmPassword
-                                            )
-                                        }
-                                        error={
-                                            errors.confirmPassword
-                                        }
-                                    />
-                                )}
-
-                                {errors.submit && (
-                                    <div className="flex items-center gap-1 text-[10px] text-red-600">
-                                        <XCircle size={12} />
-                                        {errors.submit}
-                                    </div>
-                                )}
-
-                                {isLogin && (
-                                    <div className="py-2">
-                                        <Link
-                                            href="/forgot-password"
-                                            onClick={onClose}
-                                            className="text-sm text-black underline"
-                                        >
-                                            Forgot Password?
-                                        </Link>
-                                    </div>
-                                )}
-
-                                {/* BUTTON */}
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="
-                                        flex
-                                        h-[42px]
-                                        w-full
-                                        items-center
-                                        justify-center
-                                        rounded-[8px]
-                                        bg-[#FFC200]
-                                        text-md
-                                        font-medium
-                                        text-black
-                                        disabled:opacity-60
-                                    "
-                                >
-                                    {loading ? (
-                                        <span className="flex items-center gap-2">
-                                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
-                                            {isLogin
-                                                ? "Signing In..."
-                                                : "Creating Account..."}
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-2">
-                                            {isLogin
-                                                ? "Sign In"
-                                                : "Create Account"}
-
-                                            <ArrowRight size={14} />
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="mt-6 text-center text-sm text-black/60">
-                            {isLogin
-                                ? "Don't have an account?"
-                                : "Already have an account?"}
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setIsLogin(!isLogin)
-                                }
-                                className="ml-1 font-medium text-black underline"
+                        {step === "email" && (
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    sendOTP();
+                                }}
                             >
-                                {isLogin
-                                    ? "Sign Up"
-                                    : "Sign In"}
-                            </button>
-                        </div>
+                                <div className="space-y-2.5">
 
-                        <p className="mt-3 text-center text-xs leading-[1.4] text-black/50">
-                            By{" "}
-                            {isLogin
-                                ? "signing in"
-                                : "creating an account"}
-                            , you agree to our{" "}
+                                    <div className="relative">
+
+                                        <Mail
+                                            size={16}
+                                            className="
+                                                absolute
+                                                left-3.5
+                                                top-1/2
+                                                -translate-y-1/2
+                                                text-gray-400
+                                            "
+                                        />
+
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => {
+                                                setEmail(
+                                                    e.target.value
+                                                );
+                                                setError("");
+                                            }}
+                                            placeholder="Email Address"
+                                            autoComplete="email"
+                                            className="
+                                                h-[42px]
+                                                w-full
+                                                rounded-[8px]
+                                                border
+                                                border-gray-300
+                                                pl-10
+                                                pr-3
+                                                text-[12px]
+                                                text-black
+                                                outline-none
+                                                focus:border-[#0C3A73]
+                                            "
+                                        />
+
+                                    </div>
+
+                                    {error && (
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-1
+                                                text-[10px]
+                                                text-red-600
+                                            "
+                                        >
+                                            <XCircle size={12} />
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="
+                                            flex
+                                            h-[42px]
+                                            w-full
+                                            items-center
+                                            justify-center
+                                            rounded-[8px]
+                                            bg-[#FFC200]
+                                            text-[12px]
+                                            font-medium
+                                            text-black
+                                            disabled:opacity-60
+                                        "
+                                    >
+                                        {loading
+                                            ? "Sending Code..."
+                                            : "Continue with Email"}
+                                    </button>
+
+                                </div>
+                            </form>
+                        )}
+
+                        {/* OTP */}
+
+                        {step === "otp" && (
+                            <form
+                                onSubmit={verifyOTP}
+                            >
+                                <div className="space-y-2.5">
+
+                                    <div
+                                        className="
+                                            text-center
+                                        "
+                                    >
+                                        <p
+                                            className="
+                                                text-[11px]
+                                                text-gray-500
+                                            "
+                                        >
+                                            Code sent to
+                                        </p>
+
+                                        <p
+                                            className="
+                                                mt-1
+                                                text-[12px]
+                                                font-medium
+                                                text-black
+                                            "
+                                        >
+                                            {email}
+                                        </p>
+                                    </div>
+
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        autoComplete="one-time-code"
+                                        value={otp}
+                                        onChange={(e) => {
+                                            setOtp(
+                                                e.target.value
+                                                    .replace(
+                                                        /\D/g,
+                                                        ""
+                                                    )
+                                                    .slice(
+                                                        0,
+                                                        6
+                                                    )
+                                            );
+                                            setError("");
+                                        }}
+                                        placeholder="6-digit code"
+                                        maxLength={6}
+                                        autoFocus
+                                        className="
+                                            h-[46px]
+                                            w-full
+                                            rounded-[8px]
+                                            border
+                                            border-gray-300
+                                            px-3
+                                            text-center
+                                            text-[18px]
+                                            font-semibold
+                                            tracking-[6px]
+                                            text-black
+                                            outline-none
+                                            focus:border-[#0C3A73]
+                                        "
+                                    />
+
+                                    {error && (
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-1
+                                                text-[10px]
+                                                text-red-600
+                                            "
+                                        >
+                                            <XCircle size={12} />
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={
+                                            loading ||
+                                            otp.length !== 6
+                                        }
+                                        className="
+                                            flex
+                                            h-[42px]
+                                            w-full
+                                            items-center
+                                            justify-center
+                                            rounded-[8px]
+                                            bg-[#FFC200]
+                                            text-[12px]
+                                            font-medium
+                                            text-black
+                                            disabled:opacity-60
+                                        "
+                                    >
+                                        {loading
+                                            ? "Verifying..."
+                                            : "Verify & Login"}
+                                    </button>
+
+                                    <div
+                                        className="
+                                            flex
+                                            justify-between
+                                            pt-1
+                                        "
+                                    >
+
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                changeEmail
+                                            }
+                                            disabled={
+                                                loading
+                                            }
+                                            className="
+                                                text-[11px]
+                                                text-black
+                                                underline
+                                            "
+                                        >
+                                            Change email
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={
+                                                sendOTP
+                                            }
+                                            disabled={
+                                                loading ||
+                                                resendTimer > 0
+                                            }
+                                            className="
+                                                text-[11px]
+                                                font-medium
+                                                text-[#0C3A73]
+                                                disabled:text-gray-400
+                                            "
+                                        >
+                                            {resendTimer > 0
+                                                ? `Resend in ${resendTimer}s`
+                                                : "Resend code"}
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            </form>
+                        )}
+
+                        {/* TERMS */}
+
+                        <p
+                            className="
+                                mt-3
+                                text-center
+                                text-xs
+                                leading-[1.4]
+                                text-black/50
+                            "
+                        >
+                            By continuing, you agree to our{" "}
                             <Link
                                 href="/terms-condition"
                                 onClick={onClose}
@@ -839,6 +1343,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                                 Privacy Policy
                             </Link>
                         </p>
+
                     </div>
                 </div>
             </div>
