@@ -3,7 +3,6 @@
 import { Settings2Icon, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { colorMap } from "../../utils/data";
 
 const Filter = ({ products, setFilteredProducts, setLoading, onColorSelect, onSizeSelect, onCategorySelect, filteredProducts }) => {
   const [showFilter, setShowFilter] = useState(false);

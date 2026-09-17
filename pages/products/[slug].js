@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Suspense, useEffect, useState } from "react";
-import { Layout, Navbar } from "../../components";
-import Gallery from "../../components/Gallery";
-import ProductInfo from "../../components/ProductInfo";
+import { Layout } from "../../components";
+import Gallery from "../../components/common/Gallery";
+import ProductInfo from "../../components/product/ProductInfo";
 import client from "../../libs/apollo";
 import styles from "../../styles/ProductDetails.module.css";
 import { GET_PRODUCT_DETAILS, GET_SLUG } from "../../utils/queries";
-import ProductInfoSkeleton from "../../components/ProductInfoSkeleton";
+import ProductInfoSkeleton from "../../components/product/ProductInfoSkeleton";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Head from "next/head";
 

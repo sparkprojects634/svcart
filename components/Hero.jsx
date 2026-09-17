@@ -14,7 +14,7 @@ const COVER_SCALE = 3.0 // flower core must exceed half the viewport diagonal
 const useIsomorphicLayoutEffect =
     typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
-const PETAL_COUNT = 12
+const PETAL_COUNT = 0
 
 const Flower = ({ color, className = '', style }) => (
     <svg

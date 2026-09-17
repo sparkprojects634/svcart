@@ -41,10 +41,11 @@ const steps = [
 export default function CustomizeSection() {
     return (
         <section className="py-20 w-full">
-            <div className="mx-auto flex max-w-7xl flex-col items-center gap-14 px-6 lg:flex-row lg:px-10">
+            <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-14 px-6 lg:flex-row lg:px-10">
+                
                 {/* LEFT */}
                 <div className="w-full lg:w-1/2">
-                    <h2 className="font-syne text-4xl font-bold uppercase text-[#0C4D9D] lg:text-6xl">
+                    <h2 className="font-outfit font-bold text-4xl uppercase text-[#0C4D9D] lg:text-5xl">
                         Customize Your Way
                     </h2>
                     <p className="mt-8 max-w-xl text-lg leading-8 text-gray-400">
@@ -75,7 +76,6 @@ export default function CustomizeSection() {
                 </div>
 
                 {/* RIGHT */}
-
                 <div className="w-full lg:w-1/2 bg-[url(https://dashboard.svcart.shop/wp-content/uploads/2026/07/laptop.png)] bg-cover bg-center no-bg-no-repeat">
                     <Swiper
                         modules={[Pagination, Autoplay]}

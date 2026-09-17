@@ -1,8 +1,8 @@
 import Head from "next/head";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import Cart from "../components/Cart";
-import FooterBar from "../components/common/FooterBar";
+import Navbar from "../components/header/Navbar";
+import Footer from "../components/footer/Footer";
+import Cart from "../components/cart/Cart";
+import FooterBar from "../components/footer/FooterBar";
 
 export default function TermsAndConditions() {
     return (
