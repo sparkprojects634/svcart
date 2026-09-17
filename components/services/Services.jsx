@@ -1,7 +1,7 @@
 import React from "react";
 import { AiOutlineClockCircle } from "react-icons/ai";
 import { FaShieldAlt, FaShippingFast } from "react-icons/fa";
-import styles from "../styles/Services.module.css";
+import styles from "../../styles/Services.module.css";
 
 const servicesInfo = [
   {

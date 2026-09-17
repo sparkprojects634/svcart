@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { FiShoppingBag } from "react-icons/fi";
-import { BackgroundAnimation, CartAnimation } from "../animations";
-import { useStateContext } from "../context/StateContext";
-import styles from "../styles/Cart.module.css";
+import { BackgroundAnimation, CartAnimation } from "../../animations";
+import { useStateContext } from "../../context/StateContext";
+import styles from "../../styles/Cart.module.css";
 import CartItem from "./CartItem";
 import { CheckCircle, Tag, X } from "lucide-react";
-import PayButton from "./PayButton";
+import PayButton from "../common/PayButton";
 import { useEffect, useState } from "react";
 import axios from "axios";
 

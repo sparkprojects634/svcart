@@ -85,7 +85,7 @@ export default function Footer() {
                   key={index}
                   href={item.href}
                   target="_blank"
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#0C3A73] text-white transition hover:bg-[#082b55]"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0C3A73] text-white transition hover:bg-[#082b55]"
                 >
                   {item.icon}
                 </Link>

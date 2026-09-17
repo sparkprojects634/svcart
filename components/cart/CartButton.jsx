@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ShoppingCart } from "lucide-react";
-import { useStateContext } from "../context/StateContext";
+import { useStateContext } from "../../context/StateContext";
 
 const CartButton = () => {
   const { showCart, setShowCart, totalQuantities } = useStateContext();

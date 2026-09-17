@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import styles from "../styles/ProductCard.module.css";
+import styles from "../../styles/ProductCard.module.css";
 
 const ProductCard = ({ name, description, slug, price, image }) => {
   const [isMounted, setMount] = useState(false);

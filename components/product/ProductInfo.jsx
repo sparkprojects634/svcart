@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import { useStateContext } from "../context/StateContext";
-import styles from "../styles/ProductInfo.module.css";
+import { useStateContext } from "../../context/StateContext";
+import styles from "../../styles/ProductInfo.module.css";
 import { FiShoppingBag } from "react-icons/fi";
 import Image from "next/image";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import toast from "react-hot-toast";
-import Accordion from "./common/Accordion";
+import Accordion from "../common/Accordion";
 import { ChevronRight, HeartIcon, Tag } from "lucide-react";
-import ShareButton from "./common/ShareButton";
-import SizeChart from "./common/SizeChart";
-import { useWishlist } from "../context/WishListStateContext";
+import ShareButton from "../common/ShareButton";
+import SizeChart from "../common/SizeChart";
+import { useWishlist } from "../../context/WishListStateContext";
 
 const ProductInfo = ({ product, isMounted, onVariantChange }) => {
   const { onAdd, qty, setShowCart } = useStateContext();

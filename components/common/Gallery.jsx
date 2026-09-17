@@ -1,5 +1,5 @@
 import Image from "next/image";
-import styles from "../styles/Gallery.module.css";
+import styles from "../../styles/Gallery.module.css";
 
 const Gallery = ({ product, setSlideImage, selectedIndex, setSelectedIndex }) => {
   const selectImage = (i) => {

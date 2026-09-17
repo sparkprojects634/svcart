@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import { RiArrowRightSLine } from "react-icons/ri";
 import styles from "../styles/Banner.module.css";
 

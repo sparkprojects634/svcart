@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-const LoginModal = ({ isOpen, onClose }) => {
+const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     const router = useRouter();
 
     const [step, setStep] = useState("email");
@@ -174,7 +174,7 @@ const LoginModal = ({ isOpen, onClose }) => {
             if (!response.ok || !data.success) {
                 setError(
                     data.message ||
-                        "Unable to send verification code."
+                    "Unable to send verification code."
                 );
                 return;
             }
@@ -244,7 +244,7 @@ const LoginModal = ({ isOpen, onClose }) => {
             if (!response.ok || !data.success) {
                 setError(
                     data.message ||
-                        "Invalid verification code."
+                    "Invalid verification code."
                 );
                 return;
             }
@@ -255,6 +255,11 @@ const LoginModal = ({ isOpen, onClose }) => {
 
             // Close modal
             onClose?.();
+
+            if (data.success) {
+                onLoginSuccess?.();
+                return;
+            }
 
             // Go home
             router.push("/");

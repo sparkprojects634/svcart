@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { AiOutlineCloseCircle, AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
-import styles from "../styles/CartItem.module.css";
+import styles from "../../styles/CartItem.module.css";
 import toast from "react-hot-toast";
 import Link from "next/link";
 

@@ -3,9 +3,36 @@ import { getLocalCart, getLocalValues } from "../utils/utils";
 
 const Context = createContext();
 
+const dummyCartItems = [
+  {
+    id: "12345",
+    name: "Men's Core Straight-Fit Jeans",
+    slug: "mens-core-straight-fit-jeans",
+    price: 170,
+    quantity: 1,
+    sku: "MEN-STRGHT-FIT-DENIM-JEANS-319C-DARK-INDIGO-BLUE-32",
+
+    color: "Dark Indigo Blue",
+    size: "32",
+
+    image:
+      "https://dashboard.svcart.shop/wp-content/uploads/2025/12/sample-jeans.jpg",
+
+    imageAlt: "Men's Core Straight-Fit Jeans",
+
+    productCategories: [
+      {
+        id: "cat-1",
+        name: "Men",
+        slug: "men",
+      },
+    ],
+  },
+];
+
 export const StateContext = ({ children }) => {
   const [showCart, setShowCart] = useState(false);
-  const [cartItems, setCartItems] = useState(getLocalCart("cartItems", []));
+  const [cartItems, setCartItems] = useState(dummyCartItems);
 
   const [totalPrice, setTotalPrice] = useState(getLocalValues("total", 0));
   const [totalQuantities, setTotalQuantities] = useState(
@@ -90,30 +117,55 @@ export const StateContext = ({ children }) => {
   };
 
   const toggleCartItemQuantity = (id, action) => {
-    foundProduct = cartItems.find((item) => item.id === id);
-    index = cartItems.findIndex((product) => product.id === id);
-    const newCartItems = cartItems;
+    const foundProduct = cartItems.find(
+      (product) => product.id === id
+    );
+
+    if (!foundProduct) return;
 
     if (action === "inc") {
-      newCartItems.splice(index, 1, {
-        ...foundProduct,
-        quantity: foundProduct.quantity + 1,
-      });
-      setTotalPrice((prevTotalPrice) => prevTotalPrice + foundProduct.price);
+      setCartItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === id
+            ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
+            : item
+        )
+      );
 
-      setTotalQuantities((prevTotalQuantities) => prevTotalQuantities + 1);
-    } else if (action === "dec") {
-      if (foundProduct.quantity > 1) {
-        newCartItems.splice(index, 1, {
-          ...foundProduct,
-          quantity: foundProduct.quantity - 1,
-        });
-        setTotalPrice((prevTotalPrice) => prevTotalPrice - foundProduct.price);
+      setTotalPrice(
+        (prevTotalPrice) =>
+          prevTotalPrice + Number(foundProduct.price || 0)
+      );
 
-        setTotalQuantities((prevTotalQuantities) => prevTotalQuantities - 1);
-      }
+      setTotalQuantities(
+        (prevTotalQuantities) => prevTotalQuantities + 1
+      );
     }
-    setCartItems(newCartItems);
+
+    if (action === "dec" && foundProduct.quantity > 1) {
+      setCartItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === id
+            ? {
+              ...item,
+              quantity: item.quantity - 1,
+            }
+            : item
+        )
+      );
+
+      setTotalPrice(
+        (prevTotalPrice) =>
+          prevTotalPrice - Number(foundProduct.price || 0)
+      );
+
+      setTotalQuantities(
+        (prevTotalQuantities) => prevTotalQuantities - 1
+      );
+    }
   };
 
   const incQty = () => {
