@@ -1,295 +1,329 @@
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Head from "next/head";
 import { Layout } from "../../components";
+import client from "../../libs/apollo";
+import {
+  GET_PRODUCT_DETAILS,
+  GET_SLUG,
+  GET_ALL,
+} from "../../utils/queries";
+
 import Gallery from "../../components/common/Gallery";
 import ProductInfo from "../../components/product/ProductInfo";
-import client from "../../libs/apollo";
-import styles from "../../styles/ProductDetails.module.css";
-import { GET_PRODUCT_DETAILS, GET_SLUG } from "../../utils/queries";
-import ProductInfoSkeleton from "../../components/product/ProductInfoSkeleton";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import Head from "next/head";
+import RelatedProducts from "../../components/product/RelatedProducts";
 
 export const getStaticPaths = async () => {
   try {
-    const { data } = await client.query({ query: GET_SLUG });
+    const { data } = await client.query({
+      query: GET_SLUG,
+    });
 
     const paths =
       data?.products?.nodes
         ?.filter((product) => product?.slug)
         .map((product) => ({
-          params: { slug: String(product.slug) },
+          params: {
+            slug: String(product.slug),
+          },
         })) || [];
 
     return {
       paths,
-      fallback: "blocking", // if path not pre-rendered, build it on demand
+      fallback: "blocking",
     };
-  } catch (err) {
-    console.error("Error fetching slugs:", err);
-    return { paths: [], fallback: "blocking" }; // fallback prevents build crash
-  }
-};
-
-export const getStaticProps = async ({ params: { slug } }) => {
-  try {
-    const { data } = await client.query({ query: GET_PRODUCT_DETAILS(slug) });
-
-    if (!data?.product) {
-      return { notFound: true };
-    }
+  } catch (error) {
+    console.error("GET_SLUG error:", error);
 
     return {
-      props: { item: data.product },
-      revalidate: 60, // regenerate page every 60 seconds
+      paths: [],
+      fallback: "blocking",
     };
-  } catch (err) {
-    console.error("Error fetching product details:", err);
-    return { notFound: true }; // safely show 404 if fetch fails
   }
 };
 
+export const getStaticProps = async ({ params }) => {
+  try {
+    const [{ data: productData }, { data: productsData }] =
+      await Promise.all([
+        client.query({
+          query: GET_PRODUCT_DETAILS(params.slug),
+        }),
+        client.query({
+          query: GET_ALL,
+        }),
+      ]);
 
-const ProductDetails = ({ item, products }) => {
-  const [isMounted, setMount] = useState(false);
-  const [product, setProduct] = useState(item);
-  const [slideImage, setSlideImage] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [zoom, setZoom] = useState({ active: false, x: 50, y: 50 });
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    setZoom({ active: true, x, y });
-  };
-
-
-  useEffect(() => {
-    if (product.price) {
-      setProduct({
-        ...product,
-        price: parseFloat(product.price),
-      });
+    if (!productData?.product) {
+      return {
+        notFound: true,
+      };
     }
-    setMount(true);
-  }, []);
 
-  // Merge featured + gallery while removing duplicates & placeholder issues
-  const mergedGallery = (() => {
-    const featured = product?.featuredImage?.node?.sourceUrl
-      ? [{ sourceUrl: product.featuredImage.node.sourceUrl }]
-      : [];
+    const product = productData.product;
 
-    const gallery = product?.galleryImages?.nodes || [];
+    const products =
+      productsData?.products?.nodes || [];
 
-    // Remove duplicates (featured already included in gallery in some WP setups)
-    const uniqueImages = [...featured, ...gallery].filter(
-      (img, i, arr) =>
-        img?.sourceUrl &&
-        arr.findIndex((x) => x.sourceUrl === img.sourceUrl) === i
+    /*
+     * Find related products using the same
+     * WooCommerce category.
+     */
+    const categoryIds =
+      product?.productCategories?.nodes?.map(
+        (category) => category?.databaseId
+      ) || [];
+
+    const relatedProducts = products
+      .filter((item) => item?.slug !== product?.slug)
+      .filter((item) => {
+        const itemCategoryIds =
+          item?.productCategories?.nodes?.map(
+            (category) => category?.databaseId
+          ) || [];
+
+        return itemCategoryIds.some((id) =>
+          categoryIds.includes(id)
+        );
+      })
+      .slice(0, 4);
+
+    /*
+     * If there are not enough products in the
+     * same category, fill the remaining cards
+     * with other products.
+     */
+    const fallbackProducts = products
+      .filter((item) => item?.slug !== product?.slug)
+      .filter(
+        (item) =>
+          !relatedProducts.some(
+            (related) => related.id === item.id
+          )
+      );
+
+    const finalRelatedProducts = [
+      ...relatedProducts,
+      ...fallbackProducts,
+    ].slice(0, 4);
+
+    return {
+      props: {
+        item: product,
+        relatedProducts: finalRelatedProducts,
+      },
+      revalidate: 60,
+    };
+  } catch (error) {
+    console.error(
+      "Product details error:",
+      error
     );
 
-    // If duplicate still appears at start, slice one
-    if (
-      uniqueImages.length > 1 &&
-      uniqueImages[0].sourceUrl === uniqueImages[1].sourceUrl
-    ) {
-      return uniqueImages.slice(1);
+    return {
+      notFound: true,
+    };
+  }
+};
+
+const ProductDetails = ({
+  item,
+  relatedProducts = [],
+}) => {
+  const [product, setProduct] = useState(item);
+
+  const [selectedIndex, setSelectedIndex] =
+    useState(0);
+
+  const [slideImage, setSlideImage] =
+    useState(0);
+
+  const [isMounted, setIsMounted] =
+    useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  /*
+   * Keep product state synchronized with
+   * the GraphQL product.
+   */
+  useEffect(() => {
+    setProduct(item);
+  }, [item]);
+
+  /*
+   * Merge featured image + gallery images
+   * and remove duplicates.
+   */
+  const galleryImages = useMemo(() => {
+    const images = [];
+
+    const featured =
+      product?.featuredImage?.node;
+
+    if (featured?.sourceUrl) {
+      images.push(featured);
     }
 
-    return uniqueImages;
-  })();
+    const gallery =
+      product?.galleryImages?.nodes || [];
 
-  const fetchImageUrl = async (id) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_WORDPRESS_URL}/wp-json/custom/v1/image/${id}`
-      );
-      const data = await res.json();
-      return data.url;
-    } catch (err) {
-      console.error("Error fetching image URL:", err);
-      return null;
-    }
-  };
+    gallery.forEach((image) => {
+      if (
+        image?.sourceUrl &&
+        !images.some(
+          (item) =>
+            item.sourceUrl === image.sourceUrl
+        )
+      ) {
+        images.push(image);
+      }
+    });
 
+    return images;
+  }, [product]);
 
-  const handleVariantChange = async (variant) => {
+  /*
+   * Variant changes the main product image/gallery.
+   */
+  const handleVariantChange = (
+    variant
+  ) => {
     if (!variant) return;
 
-    const newFeatured = variant.image?.sourceUrl
-      ? { node: { sourceUrl: variant.image.sourceUrl } }
-      : product.featuredImage;
+    const variantImage =
+      variant?.image?.sourceUrl;
 
-    // ✅ Get meta for Variation Images Gallery plugin
-    const meta = variant.metaData?.find((m) => m.key === "rtwpvg_images");
-    let newGallery = product.galleryImages;
+    if (!variantImage) return;
 
-    if (meta && meta.value) {
-      try {
-        const ids = JSON.parse(meta.value);
-        const urls = await Promise.all(ids.map(fetchImageUrl));
-        const validUrls = urls
-          .filter(Boolean)
-          .map((url) => ({ sourceUrl: url }));
+    const imageExists =
+      galleryImages.some(
+        (image) =>
+          image.sourceUrl === variantImage
+      );
 
-        if (validUrls.length > 0) {
-          newGallery = { nodes: validUrls };
-        }
-      } catch (e) {
-        console.error("Error parsing rtwpvg_images meta:", e);
-      }
+    if (!imageExists) {
+      setProduct((previous) => ({
+        ...previous,
+
+        featuredImage: {
+          node: {
+            sourceUrl: variantImage,
+          },
+        },
+      }));
     }
 
-    // Update state
-    setProduct((prev) => ({
-      ...prev,
-      featuredImage: newFeatured,
-      galleryImages: newGallery,
-    }));
+    const index = galleryImages.findIndex(
+      (image) =>
+        image.sourceUrl === variantImage
+    );
 
-    setSlideImage(0);
-    setSelectedIndex(0);
+    if (index >= 0) {
+      setSlideImage(index);
+      setSelectedIndex(index);
+    } else {
+      setSlideImage(0);
+      setSelectedIndex(0);
+    }
   };
 
-
-
-
   const seo = product?.seo || {};
+
+  const pageTitle =
+    seo?.title ||
+    product?.name ||
+    "Product";
+
+  const pageDescription =
+    seo?.metaDesc ||
+    product?.shortDescription
+      ?.replace(/<[^>]*>/g, "")
+      ?.slice(0, 155) ||
+    "";
+
+  const ogImage =
+    seo?.opengraphImage?.sourceUrl ||
+    product?.featuredImage?.node?.sourceUrl ||
+    "";
 
   return (
     <Layout>
       <Head>
-        <title>{seo.title || product.name}</title>
+        <title>{pageTitle}</title>
+
         <meta
           name="description"
-          content={seo.metaDesc || product.description?.slice(0, 155)}
+          content={pageDescription}
         />
-        {seo.metaKeywords && <meta name="keywords" content={seo.metaKeywords} />}
 
-        {/* OpenGraph tags */}
-        <meta property="og:title" content={seo.title || product.name} />
+        {seo?.metaKeywords && (
+          <meta
+            name="keywords"
+            content={seo.metaKeywords}
+          />
+        )}
+
+        <meta
+          property="og:title"
+          content={pageTitle}
+        />
+
         <meta
           property="og:description"
-          content={seo.metaDesc || product.shortDescription?.slice(0, 155)}
+          content={pageDescription}
         />
-        <meta
-          property="og:image"
-          content={
-            seo.opengraphImage?.sourceUrl ||
-            product.featuredImage?.node?.sourceUrl
-          }
-        />
+
+        {ogImage && (
+          <meta
+            property="og:image"
+            content={ogImage}
+          />
+        )}
       </Head>
-      <div className="mt-[105px] lg:mt-[60px]">
-        <div className={styles.wrapper}>
-          <div className={styles.left}>
-            <Gallery
-              key={product?.galleryImages?.nodes?.map((img) => img.sourceUrl).join(",") || product.id}
-              product={product}
-              selectedIndex={selectedIndex}
-              setSlideImage={setSlideImage}
-              setSelectedIndex={setSelectedIndex}
-            />
-            <div className="relative w-full">
-              <div className={styles.featured}>
-                <motion.div
-                  key={slideImage}
-                  className={`${styles.featuredInner} relative overflow-hidden rounded-[20px]`}
-                  initial={{ opacity: 0, x: 0 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 0 }}
-                  transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                >
-                  <div
-                    className="relative w-full h-full overflow-hidden cursor-zoom-in"
-                    onMouseMove={(e) => handleMouseMove(e)}
-                    onMouseLeave={() => setZoom({ active: false })}
-                  >
-                    <Image
-                      alt={product.name}
-                      src={
-                        mergedGallery[slideImage]?.sourceUrl ||
-                        product.featuredImage?.node?.sourceUrl ||
-                        "/placeholder.jpg"
-                      }
-                      fill
-                      priority
-                      className="object-cover object-center transition-transform duration-200"
-                      unoptimized
-                      fetchPriority="high"
-                    />
-                    {zoom.active && (
-                      <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          transformOrigin: `${zoom.x}% ${zoom.y}%`,
-                          transform: "scale(2)",
-                          transition: "transform 0.1s ease-out",
-                        }}
-                      >
-                        <Image
-                          alt={product.name}
-                          src={
-                            mergedGallery[slideImage]?.sourceUrl ||
-                            product.featuredImage?.node?.sourceUrl ||
-                            "/placeholder.jpg"
-                          }
-                          fill
-                          unoptimized
-                          className="object-cover rounded-[20px]"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
 
-                {product.productTags?.nodes?.length > 0 && (
-                  <div className="bg-black/70 px-4 py-2 text-[12px] lg:text-sm text-white text-center absolute z-10 uppercase rounded-2xl top-2 left-2">
-                    {product.productTags.nodes[0].name}
-                  </div>
-                )}
-              </div>
-              <div>
-                <button
-                  onClick={() =>
-                    setSlideImage(
-                      (slideImage - 1 + mergedGallery.length) % mergedGallery.length
-                    )
-                  }
-                  className="absolute left-1 top-[220px] lg:top-[350px] -translate-y-1/2 bg-black/80 p-2 rounded-full shadow hover:bg-gray-800 cursor-pointer"
-                >
-                  <ArrowLeft size={22} color="white" />
-                </button>
+      <main className="mt-[95px] lg:mt-[55px] bg-[#f7f7f7] min-h-screen">
+        {/* PRODUCT SECTION */}
 
-                <button
-                  onClick={() =>
-                    setSlideImage((slideImage + 1) % mergedGallery.length)
-                  }
-                  className="absolute right-1 top-[220px] lg:top-[350px] -translate-y-1/2 bg-black/80 p-2 rounded-full shadow hover:bg-gray-800 cursor-pointer"
-                >
-                  <ArrowRight size={22} color="white" />
-                </button>
+        <section className="mx-auto px-4 py-8 lg:px-6 lg:py-12">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,0.85fr)] lg:items-start">
+            
+            {/* LEFT - GALLERY */}
 
-              </div>
+            <div className="min-w-0">
+              <Gallery
+                product={product}
+                images={galleryImages}
+                slideImage={slideImage}
+                selectedIndex={selectedIndex}
+                setSlideImage={setSlideImage}
+                setSelectedIndex={
+                  setSelectedIndex
+                }
+              />
+            </div>
+
+            {/* RIGHT - PRODUCT INFORMATION */}
+
+            <div className="rounded-[6px] border border-[#d9d9d9] bg-[#f8f8f8] p-3 lg:p-3">
+              <ProductInfo
+                product={product}
+                isMounted={isMounted}
+                onVariantChange={
+                  handleVariantChange
+                }
+              />
             </div>
           </div>
-          <div className={styles.right}>
-            <Suspense fallback={<ProductInfoSkeleton />}>
-              <ProductInfo product={product} isMounted={isMounted} onVariantChange={handleVariantChange} />
-            </Suspense>
-          </div>
-        </div>
-        {/* <div className="pb-6">
-          <h2 className="text-3xl text-center">You may also like</h2>
-          <div className="mt-6">
-            <RandomProductCard />
-          </div>
-        </div> */}
-      </div>
+        </section>
+
+        {/* RELATED PRODUCTS */}
+
+        <RelatedProducts
+          products={relatedProducts}
+        />
+      </main>
     </Layout>
   );
 };
